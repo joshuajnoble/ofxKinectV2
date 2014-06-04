@@ -42,7 +42,7 @@ private:
 	TrackingState trackingState;
 };*/
 
-typedef map<JointType, JointOrientation*> Skeleton;
+typedef map<JointType, Joint> Skeleton;
 
 class Kv2Skeleton
 {
@@ -76,13 +76,13 @@ public:
 		ofOrientation.set(jointOrientation->Orientation.x, jointOrientation->Orientation.y, jointOrientation->Orientation.z, jointOrientation->Orientation.w);
 	}
 
-	_JointOrientation * getJointOrientation() {
-		return jointOrientation;
+	_Joint  getJoint() {
+		return joint;
 	}
 
 private:
 	ofVec4f ofOrientation;
-	_JointOrientation *jointOrientation;
+	_Joint joint;
 };
 
 #define K2_IR_WIDTH 512
@@ -169,7 +169,7 @@ class ofxKinectCommonBridge : protected ofThread {
 
   	bool bInited;
 	bool bStarted;
-	//vector<Skeleton> skeletons;
+	vector<Skeleton> skeletons;
 
 	//quantize depth buffer to 8 bit range
 	vector<unsigned char> depthLookupTable;

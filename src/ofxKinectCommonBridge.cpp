@@ -266,9 +266,9 @@ void ofxKinectCommonBridge::update()
 			if(bVideoIsInfrared) 
 			{
 				if(bProgrammableRenderer){
-					videoTex.loadData(videoPixels.getPixels(), K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_RED);
+					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_RED);
 				} else {
-					videoTex.loadData(videoPixels.getPixels(), K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_LUMINANCE16);
+					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_LUMINANCE16);
 				}
 			} 
 			else 
@@ -277,9 +277,9 @@ void ofxKinectCommonBridge::update()
 					// programmable renderer likes this
 					// TODO
 					// swizzle this to rgb & a -> GL_ONE
-					videoTex.loadData(videoPixels.getPixels(), K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_BGRA);
+					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_BGRA);
 				} else {
-					videoTex.loadData(videoPixels.getPixels(), K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_RGBA);
+					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
 				}
 			}
 		}
@@ -348,11 +348,11 @@ void ofxKinectCommonBridge::update()
 		if(bUseTexture) {
 			//depthTex.loadData(depthPixels.getPixels(), K2_IR_WIDTH, K2_IR_HEIGHT, GL_LUMINANCE);
 			if( bProgrammableRenderer ) {
-				depthTex.loadData(depthPixels.getPixels(), K2_IR_WIDTH, K2_IR_HEIGHT, GL_RED);
-				rawDepthTex.loadData(depthPixelsRaw.getPixels(), K2_IR_WIDTH, K2_IR_HEIGHT, GL_RED);
+				depthTex.loadData(depthPixels.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_RED);
+				rawDepthTex.loadData(depthPixelsRaw.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_RED);
 			} else {
-				depthTex.loadData(depthPixels.getPixels(), K2_IR_WIDTH, K2_IR_HEIGHT, GL_LUMINANCE);
-				rawDepthTex.loadData(depthPixelsRaw.getPixels(), K2_IR_WIDTH, K2_IR_HEIGHT, GL_LUMINANCE16);
+				depthTex.loadData(depthPixels.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE);
+				rawDepthTex.loadData(depthPixelsRaw.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE16);
 			}
 		}
 	} else {
@@ -478,40 +478,47 @@ void ofxKinectCommonBridge::drawDepth(const ofRectangle & rect) {
 	drawDepth(rect.x, rect.y, rect.width, rect.height);
 }
 //
-//void ofxKinectCommonBridge::drawSkeleton( int index )
-//{
-//	// Iterate through skeletons
-//	uint32_t i = 0;
-//	if(index > skeletons.size())
-//	{
-//		ofLog() << " skeleton index too high " << endl;
-//		return;
-//	}
-//
-//	// Iterate through joints
-//	for ( Skeleton::iterator it = skeletons.at(index).begin(); it != skeletons.at(index).end(); ++it ) 
-//	{
-//
-//		// Get position and rotation
-//		SkeletonBone bone	= it->second;
-//
-//		ofSetColor(255, 255, 255);
-//		ofSetLineWidth(3.0); // fat lines
-//		int startJoint = bone.getStartJoint();
-//		// do we have a start joint?
-//		if ( skeletons.at(index).find( ( NUI_SKELETON_POSITION_INDEX ) startJoint ) != skeletons.at(index).end() ) 
-//		{
-//			// draw the line
-//			ofLine( bone.getScreenPosition(), skeletons.at(index).find( ( NUI_SKELETON_POSITION_INDEX ) startJoint )->second.getScreenPosition() );
-//		}
-//
-//		ofSetColor(255, 0, 0);
-//		// Draw joint
-//		ofCircle( bone.getScreenPosition(), 10 );
-//	}
-//
-//	ofSetColor(255, 255, 255);
-//}
+void ofxKinectCommonBridge::drawSkeleton( int index )
+{
+	// Iterate through skeletons
+	uint32_t i = 0;
+	if(index > skeletons.size())
+	{
+		ofLog() << " skeleton index too high " << endl;
+		return;
+	}
+
+	ofVec3f lastPosition(-1,-1,-1);
+
+	// Iterate through joints
+	for ( Skeleton::iterator it = skeletons.at(index).begin(); it != skeletons.at(index).end(); ++it ) 
+	{
+
+		// Get position and rotation
+		Joint joint = it->second;
+
+		ofSetColor(255, 255, 255);
+		ofSetLineWidth(3.0); // fat lines
+		//int startJoint = joint.getStartJoint();
+		//// do we have a start joint?
+		if ( lastPosition.z != -1 ) // this is dum 
+		{
+			// draw the line
+			ofLine(lastPosition, ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z));
+		}
+
+		//ofSetColor(255, 0, 0);
+		//// Draw joint
+		//ofCircle( bone.getScreenPosition(), 10 );
+
+		ofSetColor(255, 0, 0);
+		ofCircle(ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z), 10);
+
+		lastPosition.set(joint.Position.X, joint.Position.Y, joint.Position.Z);
+	}
+
+	ofSetColor(255, 255, 255);
+}
 
 
 bool ofxKinectCommonBridge::initSensor( int id )
@@ -520,26 +527,6 @@ bool ofxKinectCommonBridge::initSensor( int id )
 		ofLogError("ofxKinectCommonBridge::initSensor") << "Cannot configure once the sensor has already started" << endl;
 		return false;
 	}
-
-	/*UINT count = KinectGetPortIDCount();
-	WCHAR portID[KINECT_MAX_PORTID_LENGTH];
-
-	if( !SUCCEEDED(KinectGetPortIDByIndex( id, _countof(portID), portID ))) {
-		ofLog() << " can't find kinect of ID " << id << endl;
-		return false;
-	}
-
-	hKinect = KinectOpenSensor(portID);
-
-	if(!hKinect) {
-		ofLogError("ofxKinectCommonBridge::initSensor") << " can't open Kinect of ID " << id;
-		return false;
-	}
-
-	if(ofGetCurrentRenderer()->getType() == ofGLProgrammableRenderer::TYPE)
-	{
-		bProgrammableRenderer = true;
-	}*/
 
 	hKinect = KCBOpenDefaultSensor();
 
@@ -551,130 +538,49 @@ bool ofxKinectCommonBridge::initDepthStream( int width, int height, bool nearMod
 
 	mappingDepthToColor = mapDepthToColor;
 
-	//if (mappingDepthToColor)
-	//{
-	//	// get the port ID from the simple api
-	//	const WCHAR* wcPortID = KinectGetPortID(hKinect);
-
-	//	// create an instance of the same sensor
-	//	INuiSensor* nuiSensor = nullptr;
-	//	HRESULT hr = NuiCreateSensorById(wcPortID, &nuiSensor);
-	//	nuiSensor->NuiGetCoordinateMapper(&mapper);
-	//}
-
 	if(bStarted){
 		ofLogError("ofxKinectCommonBridge::initDepthStream") << " Cannot configure once the sensor has already started";
 		return false;
 	}
-
-	//if( width == 320 ) {
-	//	depthRes = NUI_IMAGE_RESOLUTION_320x240;
-	//} else if( width == 640 ) {
-	//	depthRes= NUI_IMAGE_RESOLUTION_640x480;
-	//} else {
-	//	ofLogError("ofxKinectCommonBridge::initDepthStream") << " invalid image size" << endl;
-	//}
-
-	//KINECT_IMAGE_FRAME_FORMAT df = { sizeof(KINECT_IMAGE_FRAME_FORMAT), 0 };
- //   KinectEnableDepthStream(hKinect, nearMode, depthRes, &df);
-    /*if( KinectStreamStatusError != KinectGetDepthStreamStatus(hKinect) ){
-		depthFormat = df;*/
 	
 	KCBGetDepthFrameDescription(hKinect, &depthFrameDescription);
 	KCBCreateDepthFrame(depthFrameDescription, &pDepthFrame);
 
+	if(bProgrammableRenderer) {
+		depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
+		depthPixelsBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
+	} else {
+		depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+		depthPixelsBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	}
+
+	depthPixelsRaw.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+
+	if(bUseTexture){
+
 		if(bProgrammableRenderer) {
-			depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
-			depthPixelsBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
+			//int w, int h, int glInternalFormat, bool bUseARBExtention, int glFormat, int pixelType
+			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R8);//, true, GL_R8, GL_UNSIGNED_BYTE);
+			depthTex.setRGToRGBASwizzles(true);
+
+			//rawDepthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
+			rawDepthTex.allocate(depthPixelsRaw, true);
+			rawDepthTex.setRGToRGBASwizzles(true);
+
+			cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
+			//depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_RGB);
 		} else {
-			depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
-			depthPixelsBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
+			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
 		}
-
-		depthPixelsRaw.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
-		depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
-
-		if(bUseTexture){
-
-			if(bProgrammableRenderer) {
-				//int w, int h, int glInternalFormat, bool bUseARBExtention, int glFormat, int pixelType
-				depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R8);//, true, GL_R8, GL_UNSIGNED_BYTE);
-				depthTex.setRGToRGBASwizzles(true);
-
-				//rawDepthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
-				rawDepthTex.allocate(depthPixelsRaw, true);
-				rawDepthTex.setRGToRGBASwizzles(true);
-
-				cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
-				//depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_RGB);
-			} else {
-				depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
-				rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
-			}
-		}
-
-	//} 
-	//else{
-	//	ofLogError("ofxKinectCommonBridge::open") << "Error opening depth stream";
-	//	return false;
-	//}
+	}
 	bInited = true;
 	return true;
 }
 
 bool ofxKinectCommonBridge::initColorStream( int width, int height, bool mapColorToDepth )
 {
-	//mappingColorToDepth = mapColorToDepth;
-	//if(mappingColorToDepth && mapper == NULL) 
-	//{
-	//	
-	//	// get the port ID from the simple api
-	//	const WCHAR* wcPortID = KinectGetPortID(hKinect);
-
-	//	// create an instance of the same sensor
-	//	INuiSensor* nuiSensor = nullptr;
-	//	HRESULT hr = NuiCreateSensorById(wcPortID, &nuiSensor);
-
-	//	nuiSensor->NuiGetCoordinateMapper(&mapper);
-	//	
-
-	//	ofLogWarning("ofxKinectCommonBridge::initColorStream") << " mapping color to depth is not yet supported " << endl;
-	//}
-
-	//if(bStarted){
-	//	ofLogError("ofxKinectCommonBridge::initColorStream") << " Cannot configure once the sensor has already started";
-	//	return false;
-	//}
-
-	//KINECT_IMAGE_FRAME_FORMAT cf = { sizeof(KINECT_IMAGE_FRAME_FORMAT), 0 };
-
-	//if( width == 320 ) {
-	//	colorRes = NUI_IMAGE_RESOLUTION_320x240;
-	//} else if( width == 640 ) {
-	//	colorRes = NUI_IMAGE_RESOLUTION_640x480;
-	//} else if( width == 1280 ) {
-	//	colorRes = NUI_IMAGE_RESOLUTION_1280x960;
-	//} else {
-	//	ofLog() << " invalid image size passed to startColorStream() " << endl;
-	//}
- //   
- //   KinectEnableColorStream(hKinect, colorRes, &cf);
-	//if( KinectStreamStatusError != KinectGetColorStreamStatus(hKinect) )
-	//{
-	//	//BYTE* pColorBuffer = new BYTE[format.cbBufferSize];
-	//	colorFormat = cf;
-	//	ofLog() << "allocating a buffer of size " << K2_COLOR_WIDTH*K2_COLOR_HEIGHT*sizeof(unsigned char)*4 << " when k4w wants size " << colorFormat.cbBufferSize << endl;
-	//	videoPixels.allocate(K2_COLOR_WIDTH, K2_COLOR_HEIGHT,OF_IMAGE_COLOR_ALPHA);
-	//	videoPixelsBack.allocate(K2_COLOR_WIDTH, K2_COLOR_HEIGHT,OF_IMAGE_COLOR_ALPHA);
-	//	if(bUseTexture){
-	//		videoTex.allocate(K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_RGBA);
-	//	}
-	//}
-	//else{
-	//	ofLogError("ofxKinectCommonBridge::open") << "Error opening color stream";
-	//	return false;
-	//}
-	//bInited = true;
 
 	KCBGetColorFrameDescription(hKinect, ColorImageFormat_Rgba, &colorFrameDescription);
 	videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
@@ -695,108 +601,45 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 
 	bVideoIsInfrared = true;
 
-	//_NUI_IMAGE_RESOLUTION res;
-	//if( width == 320 ) {
-	//	res = NUI_IMAGE_RESOLUTION_320x240;
-	//} else if( width == 640 ) {
-	//	res = NUI_IMAGE_RESOLUTION_640x480;
-	//} else if( width == 1280 ) {
-	//	res = NUI_IMAGE_RESOLUTION_1280x960;
-	//} else {
-	//	ofLog() << " invalid image size passed to startIRStream() " << endl;
-	//}
-
-	//KINECT_IMAGE_FRAME_FORMAT cf = { sizeof(KINECT_IMAGE_FRAME_FORMAT), 0 };
- //   
- //   KinectEnableIRStream(hKinect, res, &cf);
- //   if( KinectStreamStatusError != KinectGetIRStreamStatus(hKinect) )
-	//{
-
-	//	// IR is two byte, but we can't use shortPixels so we'll make a raw array and put it together
-	//	// in the update() method. Probably should be changed in future versions
-	//	colorFormat = cf;
-
-	//	ofLog() << "allocating a buffer of size " << K2_COLOR_WIDTH*K2_COLOR_HEIGHT*sizeof(unsigned char)*2 << " when k4w wants size " << colorFormat.cbBufferSize << endl;
-
+	
 	KCBGetInfraredFrameDescription(hKinect, &irFrameDescription);
-		//irPixelByteArray = new BYTE[colorFormat.cbBufferSize]; // TODO still need this?
 
-		videoPixels.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
-		videoPixelsBack.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	videoPixels.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	videoPixelsBack.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
-		if(bUseTexture)
-		{
-			if(bProgrammableRenderer){
-				videoTex.allocate(irFrameDescription.width, irFrameDescription.height, GL_R8);
-				videoTex.setRGToRGBASwizzles(true);
-			}
-			else{
-				videoTex.allocate(irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE);
-			}
+	if(bUseTexture)
+	{
+		if(bProgrammableRenderer){
+			videoTex.allocate(irFrameDescription.width, irFrameDescription.height, GL_R8);
+			videoTex.setRGToRGBASwizzles(true);
 		}
-	//} else {
-	//	ofLogError("ofxKinectCommonBridge::open") << "Error opening color stream";
-	//	return false;
-	//}
+		else{
+			videoTex.allocate(irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE);
+		}
+	}
 
 	KCBCreateInfraredFrame(irFrameDescription, &pInfraredFrame);
 	bInited = true;
 	return true;
 }
 
-//bool ofxKinectCommonBridge::initSkeletonStream( bool seated )
-//{
-//	if(bStarted){
-//		ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "Cannot configure once the sensor has already started";
-//		return false;
-//	}
-//
-//	NUI_TRANSFORM_SMOOTH_PARAMETERS p = { 0.5f, 0.1f, 0.5f, 0.1f, 0.1f };
-//    
-//    KinectEnableSkeletonStream( hKinect, seated, SkeletonSelectionModeDefault, &p);
-//    if( KinectStreamStatusError != KinectGetSkeletonStreamStatus(hKinect) ) {
-//		//cout << " we have skeletons " << endl;
-//
-//		//vector<Skeleton>::iterator skelIt = skeletons.begin();
-//		for( int i = 0; i < NUI_SKELETON_COUNT; i++ )
-//		{
-//			Skeleton s;
-//			skeletons.push_back(s);
-//		}
-//
-//		bUsingSkeletons = true;
-//		return true;
-//	} 
-//
-//	ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "cannot initialize stream";
-//	return false;
-//}
+bool ofxKinectCommonBridge::initSkeletonStream( bool seated )
+{
+	if(bStarted){
+		ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "Cannot configure once the sensor has already started";
+		return false;
+	}
+
+	KCBCreateBodyFrame(&pBodyFrame);
+
+	ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "cannot initialize stream";
+	return false;
+}
 
 //----------------------------------------------------------
 bool ofxKinectCommonBridge::start()
 {
-	/*if(bStarted){
-		ofLogError("ofxKinectCommonBridge::start") << "Stream already started";
-		return false;
-	}
-
-	if(hKinect == NULL){
-		cout << "init sensor" << endl;
-		initSensor();
-	}
-
-	if(!bInited){
-		cout << "init stuff" << endl;
-
-		initColorStream(640,480);
-		initDepthStream(320,240);
-	}
-
-    HRESULT hr = KinectStartStreams(hKinect);
-    if( FAILED(hr) )
-    {
-        return false;
-    }*/
+	
 	startThread(true, false);
 	bStarted = true;	
 	return true;
@@ -851,8 +694,8 @@ void ofxKinectCommonBridge::threadedFunction(){
 			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Infrared) && SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
 			{
 				bNeedsUpdateVideo = true;
-				
-				for (int i = 0; i < K2_COLOR_WIDTH * K2_COLOR_HEIGHT; i++)
+				// do we need to do this anymore?
+				for (int i = 0; i <colorFrameDescription.width * colorFrameDescription.height; i++)
 				{
 					videoPixelsBack.getPixels()[i] = reinterpret_cast<USHORT*>(irPixelByteArray)[i] >> 8;
 				}
