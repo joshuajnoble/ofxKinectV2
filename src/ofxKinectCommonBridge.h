@@ -182,5 +182,9 @@ class ofxKinectCommonBridge : protected ofThread {
 	//INuiSensor *nuiSensor;
 	//INuiCoordinateMapper *mapper;
 
+	KCBDepthFrame* pDepthFrame;
+	KCBColorFrame* pDepthFrame;
+	KCBInfraredFrame* pInfraredFrame;
+	KCBBodyFrame* pBodyFrame;
 
 };
