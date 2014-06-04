@@ -22,7 +22,7 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw()
 {
-	kinect.draw(0,0);
+	//kinect.draw(0,0);
 	kinect.drawDepth(100, 0);
 }
 

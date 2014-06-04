@@ -232,7 +232,7 @@ void ofxKinectCommonBridge::update()
 	{
 		bIsFrameNewVideo = true;
 
-		swap(videoPixels,videoPixelsBack);
+		//swap(videoPixels,videoPixelsBack);
 
 		// if you're mapping color pix to depth space, downscale color pix
 		/*if(mappingColorToDepth && beginMappingColorToDepth)
@@ -299,7 +299,7 @@ void ofxKinectCommonBridge::update()
 		}
 
 		bIsFrameNewDepth = true;
-		swap(depthPixelsRaw, depthPixelsRawBack);
+		//swap(depthPixelsRaw, depthPixelsRawBack);
 		bNeedsUpdateDepth = false;
 		
 		// if mapping depth to color, upscale depth
@@ -341,21 +341,21 @@ void ofxKinectCommonBridge::update()
 
 		} else {
 */
-			for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
-				depthPixels[i] = depthLookupTable[ ofClamp(depthPixelsRaw[i] >> 4, 0, depthLookupTable.size()-1 ) ];
-				depthPixelsRaw[i] = depthPixelsRaw[i] >> 4;
-			}
+		for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
+			depthPixels[i] = depthLookupTable[ ofClamp(depthPixelsRaw[i] >> 4, 0, depthLookupTable.size()-1 ) ];
+			depthPixelsRaw[i] = depthPixelsRaw[i] >> 4;
+		}
 		//}
 
 
 		if(bUseTexture) {
 			//depthTex.loadData(depthPixels.getPixels(), K2_IR_WIDTH, K2_IR_HEIGHT, GL_LUMINANCE);
 			if( bProgrammableRenderer ) {
-				depthTex.loadData(depthPixels.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_RED);
-				rawDepthTex.loadData(depthPixelsRaw.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_RED);
+				depthTex.loadData(depthPixels.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED);
+				rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED);
 			} else {
-				depthTex.loadData(depthPixels.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE);
-				rawDepthTex.loadData(depthPixelsRaw.getPixels(), irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE16);
+				depthTex.loadData(depthPixels.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
+				rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
 			}
 		}
 	} else {
@@ -424,7 +424,7 @@ void ofxKinectCommonBridge::draw(float _x, float _y, float _w, float _h) {
 
 //----------------------------------------------------------
 void ofxKinectCommonBridge::draw(float _x, float _y) {
-	draw(_x, _y, (float)K2_COLOR_WIDTH, (float)K2_COLOR_HEIGHT);
+	draw(_x, _y, colorFrameDescription.width, colorFrameDescription.height);
 }
 
 //----------------------------------------------------------
@@ -446,7 +446,7 @@ void ofxKinectCommonBridge::drawRawDepth(float _x, float _y, float _w, float _h)
 
 //----------------------------------------------------------
 void ofxKinectCommonBridge::drawRawDepth(float _x, float _y) {
-	drawRawDepth(_x, _y, (float)K2_COLOR_WIDTH, (float)K2_COLOR_HEIGHT);
+	drawRawDepth(_x, _y, depthFrameDescription.width, depthFrameDescription.height);
 }
 
 //----------------------------------------------------------
@@ -468,7 +468,7 @@ void ofxKinectCommonBridge::drawDepth(float _x, float _y, float _w, float _h) {
 
 //---------------------------------------------------------------------------
 void ofxKinectCommonBridge::drawDepth(float _x, float _y) {
-	drawDepth(_x, _y, (float)K2_IR_WIDTH, (float)K2_IR_HEIGHT);
+	drawDepth(_x, _y, (float) depthFrameDescription.width, (float) depthFrameDescription.height);
 }
 
 //----------------------------------------------------------
@@ -553,11 +553,7 @@ bool ofxKinectCommonBridge::initDepthStream( int width, int height, bool nearMod
 	HRESULT hr;
 	hr = KCBGetDepthFrameDescription(hKinect, &depthFrameDescription);
 
-	pDepthFrame = new KCBDepthFrame();
-	pDepthFrame->Buffer = new UINT16[depthFrameDescription.lengthInPixels];
-	pDepthFrame->Size = depthFrameDescription.lengthInPixels;
-
-	hr = KCBCreateDepthFrame(depthFrameDescription, &pDepthFrame);
+	//hr = KCBCreateDepthFrame(depthFrameDescription, &pDepthFrame);
 
 	if(bProgrammableRenderer) {
 		depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
@@ -569,6 +565,10 @@ bool ofxKinectCommonBridge::initDepthStream( int width, int height, bool nearMod
 
 	depthPixelsRaw.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 	depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+
+	pDepthFrame = new KCBDepthFrame();
+	pDepthFrame->Buffer = depthPixelsRaw.getPixels();
+	pDepthFrame->Size = depthFrameDescription.lengthInPixels;
 
 	if(bUseTexture){
 
@@ -597,16 +597,20 @@ bool ofxKinectCommonBridge::initColorStream( int width, int height, bool mapColo
 {
 
 	KCBGetColorFrameDescription(hKinect, ColorImageFormat_Rgba, &colorFrameDescription);
-	pColorFrame = new KCBColorFrame();
-	pColorFrame->Buffer = new BYTE[colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel];
-	pColorFrame->Size = colorFrameDescription.lengthInPixels;
 
 	videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
 	videoPixelsBack.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
 	if(bUseTexture){
-		videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
+		videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_BGRA);
 	}
-	KCBCreateColorFrame(ColorImageFormat_Rgba, colorFrameDescription, &pColorFrame);
+
+
+	pColorFrame = new KCBColorFrame();
+	pColorFrame->Buffer = videoPixels.getPixels();
+	pColorFrame->Size = colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel;
+	pColorFrame->Format = ColorImageFormat_Rgba;
+
+	//HRESULT hr = KCBCreateColorFrame(ColorImageFormat_Rgba, colorFrameDescription, &pColorFrame);
 	return true;
 }
 
@@ -706,7 +710,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 	while(isThreadRunning()) {
 
 		// KCBAllFramesReady
-		if (KCBIsFrameReady(hKinect, FrameSourceTypes_Depth) && SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
+		if (KCBIsFrameReady(hKinect, FrameSourceTypes_Depth) && (SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame) == 0)))
 		{
 			bNeedsUpdateDepth = true;
         }
@@ -725,7 +729,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 		}
 		else
 		{
-			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Color) && SUCCEEDED(KCBGetColorFrame	(hKinect, pColorFrame)))
+			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Color) && (SUCCEEDED(KCBGetColorFrame	(hKinect, pColorFrame)) == 0))
 			{
 				bNeedsUpdateVideo = true;
 			}
