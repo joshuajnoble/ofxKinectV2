@@ -224,8 +224,13 @@ class ofxKinectCommonBridge : protected ofThread {
 	//INuiCoordinateMapper *mapper;
 
 	KCBDepthFrame* pDepthFrame;
-	KCBColorFrame* pDepthFrame;
+	KCBColorFrame* pColorFrame;
 	KCBInfraredFrame* pInfraredFrame;
 	KCBBodyFrame* pBodyFrame;
+	KCBBodyIndexFrame* pBodyIndexFrame;
+
+	KCBFrameDescription colorFrameDescription;
+	KCBFrameDescription depthFrameDescription;
+	KCBFrameDescription irFrameDescription;
 
 };

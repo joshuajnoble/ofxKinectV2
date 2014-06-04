@@ -70,12 +70,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalDependencies>%(AdditionalDependencies);KCBv2.lib;Kinect10.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\addons\ofxKinectV2;C:\Program Files\Microsoft SDKs\Kinect\v2.0-DevPreview1404\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);KCBv2.lib;Kinect20.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\addons\ofxKinectV2\libs\KCBv2\lib\x86;C:\Program Files\Microsoft SDKs\Kinect\v2.0-DevPreview1404\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /e /i /y "$(ProjectDir)..\..\..\export\vs\*.dll" "$(ProjectDir)bin"
-xcopy /e /i /y "$(ProjectDir)..\libs\KinectCommonBridge\lib\windows\*.dll" "$(ProjectDir)bin"
+xcopy /e /i /y "$(ProjectDir)..\..\..\addons\ofxKinectV2\libs\KCBv2\lib\x86*.dll" "$(ProjectDir)bin"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

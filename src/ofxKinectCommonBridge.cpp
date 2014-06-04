@@ -576,23 +576,26 @@ bool ofxKinectCommonBridge::initDepthStream( int width, int height, bool nearMod
  //   KinectEnableDepthStream(hKinect, nearMode, depthRes, &df);
     /*if( KinectStreamStatusError != KinectGetDepthStreamStatus(hKinect) ){
 		depthFormat = df;*/
-		
+	
+	KCBGetDepthFrameDescription(hKinect, &depthFrameDescription);
+	KCBCreateDepthFrame(depthFrameDescription, &pDepthFrame);
+
 		if(bProgrammableRenderer) {
-			depthPixels.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, OF_IMAGE_COLOR);
-			depthPixelsBack.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, OF_IMAGE_COLOR);
+			depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
+			depthPixelsBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
 		} else {
-			depthPixels.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, OF_IMAGE_GRAYSCALE);
-			depthPixelsBack.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, OF_IMAGE_GRAYSCALE);
+			depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+			depthPixelsBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 		}
 
-		depthPixelsRaw.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, OF_IMAGE_GRAYSCALE);
-		depthPixelsRawBack.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, OF_IMAGE_GRAYSCALE);
+		depthPixelsRaw.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+		depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 		if(bUseTexture){
 
 			if(bProgrammableRenderer) {
 				//int w, int h, int glInternalFormat, bool bUseARBExtention, int glFormat, int pixelType
-				depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_R8);//, true, GL_R8, GL_UNSIGNED_BYTE);
+				depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R8);//, true, GL_R8, GL_UNSIGNED_BYTE);
 				depthTex.setRGToRGBASwizzles(true);
 
 				//rawDepthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
@@ -602,8 +605,8 @@ bool ofxKinectCommonBridge::initDepthStream( int width, int height, bool nearMod
 				cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
 				//depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_RGB);
 			} else {
-				depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_LUMINANCE);
-				rawDepthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_LUMINANCE16);
+				depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
+				rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
 			}
 		}
 
@@ -669,6 +672,14 @@ bool ofxKinectCommonBridge::initColorStream( int width, int height, bool mapColo
 	//	return false;
 	//}
 	//bInited = true;
+
+	KCBGetColorFrameDescription(hKinect, ColorImageFormat_Rgba, &colorFrameDescription);
+	videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
+	videoPixelsBack.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
+	if(bUseTexture){
+		videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
+	}
+	KCBCreateColorFrame(ColorImageFormat_Rgba, colorFrameDescription, &pColorFrame);
 	return true;
 }
 
@@ -681,43 +692,43 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 
 	bVideoIsInfrared = true;
 
-	/*_NUI_IMAGE_RESOLUTION res;
-	if( width == 320 ) {
-		res = NUI_IMAGE_RESOLUTION_320x240;
-	} else if( width == 640 ) {
-		res = NUI_IMAGE_RESOLUTION_640x480;
-	} else if( width == 1280 ) {
-		res = NUI_IMAGE_RESOLUTION_1280x960;
-	} else {
-		ofLog() << " invalid image size passed to startIRStream() " << endl;
-	}
+	//_NUI_IMAGE_RESOLUTION res;
+	//if( width == 320 ) {
+	//	res = NUI_IMAGE_RESOLUTION_320x240;
+	//} else if( width == 640 ) {
+	//	res = NUI_IMAGE_RESOLUTION_640x480;
+	//} else if( width == 1280 ) {
+	//	res = NUI_IMAGE_RESOLUTION_1280x960;
+	//} else {
+	//	ofLog() << " invalid image size passed to startIRStream() " << endl;
+	//}
 
-	KINECT_IMAGE_FRAME_FORMAT cf = { sizeof(KINECT_IMAGE_FRAME_FORMAT), 0 };
-    
-    KinectEnableIRStream(hKinect, res, &cf);
-    if( KinectStreamStatusError != KinectGetIRStreamStatus(hKinect) )
-	{*/
+	//KINECT_IMAGE_FRAME_FORMAT cf = { sizeof(KINECT_IMAGE_FRAME_FORMAT), 0 };
+ //   
+ //   KinectEnableIRStream(hKinect, res, &cf);
+ //   if( KinectStreamStatusError != KinectGetIRStreamStatus(hKinect) )
+	//{
 
-		// IR is two byte, but we can't use shortPixels so we'll make a raw array and put it together
-		// in the update() method. Probably should be changed in future versions
-		colorFormat = cf;
+	//	// IR is two byte, but we can't use shortPixels so we'll make a raw array and put it together
+	//	// in the update() method. Probably should be changed in future versions
+	//	colorFormat = cf;
 
-		ofLog() << "allocating a buffer of size " << K2_COLOR_WIDTH*K2_COLOR_HEIGHT*sizeof(unsigned char)*2 << " when k4w wants size " << colorFormat.cbBufferSize << endl;
+	//	ofLog() << "allocating a buffer of size " << K2_COLOR_WIDTH*K2_COLOR_HEIGHT*sizeof(unsigned char)*2 << " when k4w wants size " << colorFormat.cbBufferSize << endl;
 
+	KCBGetInfraredFrameDescription(hKinect, &irFrameDescription);
+		//irPixelByteArray = new BYTE[colorFormat.cbBufferSize]; // TODO still need this?
 
-		irPixelByteArray = new BYTE[colorFormat.cbBufferSize];
-
-		videoPixels.allocate(K2_COLOR_WIDTH, K2_COLOR_HEIGHT, OF_IMAGE_GRAYSCALE);
-		videoPixelsBack.allocate(K2_COLOR_WIDTH, K2_COLOR_HEIGHT, OF_IMAGE_GRAYSCALE);
+		videoPixels.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+		videoPixelsBack.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 		if(bUseTexture)
 		{
 			if(bProgrammableRenderer){
-				videoTex.allocate(K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_R8);
+				videoTex.allocate(irFrameDescription.width, irFrameDescription.height, GL_R8);
 				videoTex.setRGToRGBASwizzles(true);
 			}
 			else{
-				videoTex.allocate(K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_LUMINANCE);
+				videoTex.allocate(irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE);
 			}
 		}
 	//} else {
@@ -725,6 +736,7 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 	//	return false;
 	//}
 
+	KCBCreateInfraredFrame(irFrameDescription, &pInfraredFrame);
 	bInited = true;
 	return true;
 }
@@ -793,6 +805,13 @@ void ofxKinectCommonBridge::stop() {
 		waitForThread(true);
 		bStarted = false;
 
+		KCBReleaseBodyFrame(&pBodyFrame);
+		KCBReleaseBodyIndexFrame(&pBodyIndexFrame);
+		KCBReleaseColorFrame(&pColorFrame);
+		KCBReleaseDepthFrame(&pDepthFrame);
+		KCBReleaseInfraredFrame(&pInfraredFrame);
+		//KCBReleaseLongExposureInfraredFrame(_Inout_ KCBLongExposureInfraredFrame** pLongExposureInfraredFrame);
+
 		//// release these interfaces when done
 		//if (mapper)
 		//{
@@ -819,14 +838,14 @@ void ofxKinectCommonBridge::threadedFunction(){
 	while(isThreadRunning()) {
 
 		// KCBAllFramesReady
-		if (KCBIsFrameReady(hKinect, FrameSourceTypes_Depth) && SUCCEEDED(KinectGetDepthFrame(hKinect, depthFormat.cbBufferSize, (BYTE*)depthPixelsRawBack.getPixels(), &timestamp)))
+		if (KCBIsFrameReady(hKinect, FrameSourceTypes_Depth) && SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
 		{
 			bNeedsUpdateDepth = true;
         }
 
 		if(bVideoIsInfrared)
 		{
-			if(  KinectIsColorFrameReady(hKinect) && SUCCEEDED( KinectGetColorFrame(hKinect, colorFormat.cbBufferSize, irPixelByteArray, &timestamp) ) )
+			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Infrared) && SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
 			{
 				bNeedsUpdateVideo = true;
 				
@@ -838,14 +857,14 @@ void ofxKinectCommonBridge::threadedFunction(){
 		}
 		else
 		{
-			if( SUCCEEDED( KinectGetColorFrame(hKinect, colorFormat.cbBufferSize, videoPixelsBack.getPixels(), &timestamp) ) )
+			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Color) && SUCCEEDED(KCBGetColorFrame	(hKinect, pColorFrame)))
 			{
 				bNeedsUpdateVideo = true;
 			}
 		}
 
 		if(bUsingSkeletons) {
-			if( KinectIsSkeletonFrameReady(hKinect) && SUCCEEDED ( KinectGetSkeletonFrame(hKinect, &k4wSkeletons )) ) 
+			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Body) && SUCCEEDED(KCBGetBodyFrame(hKinect, pBodyFrame)))
 			{
 				bNeedsUpdateSkeleton = true;
 			}
