@@ -1,4 +1,7 @@
 #include "ofxKinectCommonBridge.h"
+
+// test comment
+
 /*
 SkeletonBone::SkeletonBone ( const Vector4& inPosition, const _NUI_SKELETON_BONE_ORIENTATION& orient, const NUI_SKELETON_POSITION_TRACKING_STATE& trackingState) {
 
