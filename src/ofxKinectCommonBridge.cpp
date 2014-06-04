@@ -67,6 +67,85 @@ SkeletonBone::TrackingState SkeletonBone::getTrackingState() {
 const ofVec3f SkeletonBone::getScreenPosition() {
 	return screenPosition;
 }*/
+//
+//SkeletonBone::SkeletonBone(const Vector4& inPosition, const JointOrientation& orient ) {
+//
+//	/*cameraRotation.set(orient.Orientation., orient.absoluteRotation.rotationMatrix.M12, orient.absoluteRotation.rotationMatrix.M13, orient.absoluteRotation.rotationMatrix.M14,
+//		orient.absoluteRotation.rotationMatrix.M21, orient.absoluteRotation.rotationMatrix.M22, orient.absoluteRotation.rotationMatrix.M23, orient.absoluteRotation.rotationMatrix.M24,
+//		orient.absoluteRotation.rotationMatrix.M31, orient.absoluteRotation.rotationMatrix.M32, orient.absoluteRotation.rotationMatrix.M33, orient.absoluteRotation.rotationMatrix.M34,
+//		orient.absoluteRotation.rotationMatrix.M41, orient.absoluteRotation.rotationMatrix.M42, orient.absoluteRotation.rotationMatrix.M43, orient.absoluteRotation.rotationMatrix.M44);*/
+//
+//	//ofMatrix4x4 rotMat;
+//	ofQuaternion quat(orient.Orientation.x, orient.Orientation.y, orient.Orientation.z, orient.Orientation.w);
+//	//rotMat.makeRotationMatrix(quat);
+//
+//	/*startJoint = orient.JointType;
+//	endJoint = orient.endJoint;*/
+//
+//	//NuiTransformSkeletonToDepthImage(inPosition, &(screenPosition.x), &(screenPosition.y), NUI_IMAGE_RESOLUTION_640x480);
+//
+//	/*rotation.set(orient.hierarchicalRotation.rotationMatrix.M11, orient.hierarchicalRotation.rotationMatrix.M12, orient.hierarchicalRotation.rotationMatrix.M13, orient.hierarchicalRotation.rotationMatrix.M14,
+//		orient.hierarchicalRotation.rotationMatrix.M21, orient.hierarchicalRotation.rotationMatrix.M22, orient.hierarchicalRotation.rotationMatrix.M23, orient.hierarchicalRotation.rotationMatrix.M24,
+//		orient.hierarchicalRotation.rotationMatrix.M31, orient.hierarchicalRotation.rotationMatrix.M32, orient.hierarchicalRotation.rotationMatrix.M33, orient.hierarchicalRotation.rotationMatrix.M34,
+//		orient.hierarchicalRotation.rotationMatrix.M41, orient.hierarchicalRotation.rotationMatrix.M42, orient.hierarchicalRotation.rotationMatrix.M43, orient.hierarchicalRotation.rotationMatrix.M44);*/
+//
+//	rotation.makeRotationMatrix(quat);
+//
+//	switch () {
+//	case NUI_SKELETON_POSITION_NOT_TRACKED:
+//		this->trackingState = NotTracked;
+//		break;
+//	case NUI_SKELETON_POSITION_INFERRED:
+//		this->trackingState = Inferred;
+//		break;
+//	case NUI_SKELETON_POSITION_TRACKED:
+//		this->trackingState = Tracked;
+//		break;
+//	}
+//}
+//
+//const ofVec3f& SkeletonBone::getStartPosition() {
+//	return position;
+//}
+//
+//const ofQuaternion&	SkeletonBone::getRotation() {
+//	return rotation.getRotate();
+//}
+//
+//const ofMatrix4x4& SkeletonBone::getRotationMatrix() {
+//	return rotation;
+//}
+//
+//const int SkeletonBone::getStartJoint() {
+//	return startJoint;
+//}
+//
+//const ofQuaternion SkeletonBone::getCameraRotation() {
+//	return cameraRotation.getRotate();
+//}
+//
+//const ofMatrix4x4 SkeletonBone::getCameraRotationMatrix() {
+//	return rotation;
+//}
+//
+//int SkeletonBone::getEndJoint() {
+//	return endJoint;
+//}
+//
+//SkeletonBone::TrackingState SkeletonBone::getTrackingState() {
+//	return trackingState;
+//}
+//
+//const ofVec3f SkeletonBone::getScreenPosition() {
+//	return screenPosition;
+//}
+
+
+
+//================================================================================================================
+// common bridge
+//================================================================================================================
+
 
 ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	hKinect = NULL;
