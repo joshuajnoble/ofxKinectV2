@@ -153,6 +153,9 @@ const ofVec3f SkeletonBone::getScreenPosition() {
 ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	hKinect = NULL;
 
+	pDepthFrame = NULL;
+	pColorFrame = NULL;
+
 	beginMappingColorToDepth = false;
 
 	bIsFrameNewVideo = false;
@@ -527,6 +530,10 @@ bool ofxKinectCommonBridge::initSensor( int id )
 		ofLogError("ofxKinectCommonBridge::initSensor") << "Cannot configure once the sensor has already started" << endl;
 		return false;
 	}
+	if (ofGetCurrentRenderer()->getType() == ofGLProgrammableRenderer::TYPE)
+	{
+		bProgrammableRenderer = true;
+	}
 
 	hKinect = KCBOpenDefaultSensor();
 
@@ -542,9 +549,15 @@ bool ofxKinectCommonBridge::initDepthStream( int width, int height, bool nearMod
 		ofLogError("ofxKinectCommonBridge::initDepthStream") << " Cannot configure once the sensor has already started";
 		return false;
 	}
-	
-	KCBGetDepthFrameDescription(hKinect, &depthFrameDescription);
-	KCBCreateDepthFrame(depthFrameDescription, &pDepthFrame);
+
+	HRESULT hr;
+	hr = KCBGetDepthFrameDescription(hKinect, &depthFrameDescription);
+
+	pDepthFrame = new KCBDepthFrame();
+	pDepthFrame->Buffer = new UINT16[depthFrameDescription.lengthInPixels];
+	pDepthFrame->Size = depthFrameDescription.lengthInPixels;
+
+	hr = KCBCreateDepthFrame(depthFrameDescription, &pDepthFrame);
 
 	if(bProgrammableRenderer) {
 		depthPixels.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_COLOR);
@@ -575,14 +588,19 @@ bool ofxKinectCommonBridge::initDepthStream( int width, int height, bool nearMod
 			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
 		}
 	}
-	bInited = true;
-	return true;
+	
+	
+	return bInited;
 }
 
 bool ofxKinectCommonBridge::initColorStream( int width, int height, bool mapColorToDepth )
 {
 
 	KCBGetColorFrameDescription(hKinect, ColorImageFormat_Rgba, &colorFrameDescription);
+	pColorFrame = new KCBColorFrame();
+	pColorFrame->Buffer = new BYTE[colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel];
+	pColorFrame->Size = colorFrameDescription.lengthInPixels;
+
 	videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
 	videoPixelsBack.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
 	if(bUseTexture){
@@ -603,6 +621,10 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 
 	
 	KCBGetInfraredFrameDescription(hKinect, &irFrameDescription);
+
+	pInfraredFrame = new KCBInfraredFrame();
+	pInfraredFrame->Buffer = new UINT16[irFrameDescription.lengthInPixels];
+	pInfraredFrame->Size = irFrameDescription.lengthInPixels;
 
 	videoPixels.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
 	videoPixelsBack.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
