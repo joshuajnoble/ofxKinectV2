@@ -2,8 +2,7 @@
 
 #include "ofMain.h"
 
-#include "KinectCommonBridgeLib.h"
-#include "NuiSensor.h"
+#include "KCBv2LIB.h"
 #pragma comment (lib, "KinectCommonBridge.lib") // add path to lib additional dependency dir $(TargetDir)
 
 
