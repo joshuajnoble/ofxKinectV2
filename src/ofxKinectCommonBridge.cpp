@@ -1,5 +1,5 @@
 #include "ofxKinectCommonBridge.h"
-
+/*
 SkeletonBone::SkeletonBone ( const Vector4& inPosition, const _NUI_SKELETON_BONE_ORIENTATION& orient, const NUI_SKELETON_POSITION_TRACKING_STATE& trackingState) {
 
 	cameraRotation.set( orient.absoluteRotation.rotationMatrix.M11, orient.absoluteRotation.rotationMatrix.M12, orient.absoluteRotation.rotationMatrix.M13, orient.absoluteRotation.rotationMatrix.M14,
@@ -66,7 +66,7 @@ SkeletonBone::TrackingState SkeletonBone::getTrackingState() {
 
 const ofVec3f SkeletonBone::getScreenPosition() {
 	return screenPosition;
-}
+}*/
 
 ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	hKinect = NULL;
@@ -124,14 +124,14 @@ bool ofxKinectCommonBridge::isFrameNewVideo(){
 bool ofxKinectCommonBridge::isFrameNewDepth(){
 	return bIsFrameNewDepth;
 }
-
-bool ofxKinectCommonBridge::isNewSkeleton() {
-	return bNeedsUpdateSkeleton;
-}
-
-vector<Skeleton> &ofxKinectCommonBridge::getSkeletons() {
-	return skeletons;
-}
+//
+//bool ofxKinectCommonBridge::isNewSkeleton() {
+//	return bNeedsUpdateSkeleton;
+//}
+//
+//vector<Skeleton> &ofxKinectCommonBridge::getSkeletons() {
+//	return skeletons;
+//}
 /// updates the pixel buffers and textures
 /// make sure to call this to update to the latest incoming frames
 void ofxKinectCommonBridge::update()
@@ -184,9 +184,9 @@ void ofxKinectCommonBridge::update()
 			if(bVideoIsInfrared) 
 			{
 				if(bProgrammableRenderer){
-					videoTex.loadData(videoPixels.getPixels(), colorFormat.dwWidth, colorFormat.dwHeight, GL_RED);
+					videoTex.loadData(videoPixels.getPixels(), K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_RED);
 				} else {
-					videoTex.loadData(videoPixels.getPixels(), colorFormat.dwWidth, colorFormat.dwHeight, GL_LUMINANCE16);
+					videoTex.loadData(videoPixels.getPixels(), K2_COLOR_WIDTH, K2_COLOR_HEIGHT, GL_LUMINANCE16);
 				}
 			} 
 			else 

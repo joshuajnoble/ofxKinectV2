@@ -110,7 +110,7 @@ xcopy /e /i /y "$(ProjectDir)..\libs\KinectCommonBridge\lib\windows\x86\*.dll" "
     <ClCompile Include="src\testApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libs\KinectCommonBridge\include\KinectCommonBridgeLib.h" />
+    <ClInclude Include="..\libs\KCBv2\include\KCBv2Lib.h" />
     <ClInclude Include="..\src\ofxKinectCommonBridge.h" />
     <ClInclude Include="src\testApp.h" />
   </ItemGroup>

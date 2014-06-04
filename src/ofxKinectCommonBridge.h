@@ -3,49 +3,55 @@
 #include "ofMain.h"
 
 #include "KCBv2LIB.h"
-#pragma comment (lib, "KinectCommonBridge.lib") // add path to lib additional dependency dir $(TargetDir)
+#pragma comment (lib, "KCBv2.lib") // add path to lib additional dependency dir $(TargetDir)
 
+//
+//class SkeletonBone
+//{
+//public:
+//	enum TrackingState {
+//		NotTracked,
+//		Tracked,
+//		Inferred
+//	};
+//	// lots of constness because we're putting these in a map and that
+//	// copies stuff all over the place
+//	const ofQuaternion getCameraRotation();
+//	const ofMatrix4x4 getCameraRotationMatrix();
+//
+//	const ofVec3f& getStartPosition();
+//	const ofVec3f getScreenPosition();
+//	const ofQuaternion&	getRotation();
+//	const ofMatrix4x4& getRotationMatrix();
+//
+//	const int getStartJoint();
+//	int getEndJoint();
+//
+//	TrackingState getTrackingState();
+//
+//	SkeletonBone( const Vector4& inPosition, const _NUI_SKELETON_BONE_ORIENTATION& bone, const NUI_SKELETON_POSITION_TRACKING_STATE& trackingState );
+//
+//private:
+//
+//	ofMatrix4x4 cameraRotation;
+//	int	endJoint;
+//	int	startJoint;
+//	ofVec3f	position;
+//	ofMatrix4x4	rotation;
+//	ofVec2f screenPosition;
+//	TrackingState trackingState;
+//};
+//
+//typedef map<_NUI_SKELETON_POSITION_INDEX, SkeletonBone> Skeleton;
 
-class SkeletonBone
-{
-public:
-	enum TrackingState {
-		NotTracked,
-		Tracked,
-		Inferred
-	};
-	// lots of constness because we're putting these in a map and that
-	// copies stuff all over the place
-	const ofQuaternion getCameraRotation();
-	const ofMatrix4x4 getCameraRotationMatrix();
-
-	const ofVec3f& getStartPosition();
-	const ofVec3f getScreenPosition();
-	const ofQuaternion&	getRotation();
-	const ofMatrix4x4& getRotationMatrix();
-
-	const int getStartJoint();
-	int getEndJoint();
-
-	TrackingState getTrackingState();
-
-	SkeletonBone( const Vector4& inPosition, const _NUI_SKELETON_BONE_ORIENTATION& bone, const NUI_SKELETON_POSITION_TRACKING_STATE& trackingState );
-
-private:
-
-	ofMatrix4x4 cameraRotation;
-	int	endJoint;
-	int	startJoint;
-	ofVec3f	position;
-	ofMatrix4x4	rotation;
-	ofVec2f screenPosition;
-	TrackingState trackingState;
-};
-
-typedef map<_NUI_SKELETON_POSITION_INDEX, SkeletonBone> Skeleton;
+#define K2_IR_WIDTH 512
+#define K2_IR_HEIGHT 424
+#define K2_COLOR_WIDTH 1920
+#define K2_COLOR_HEIGHT 1080
 
 class ofxKinectCommonBridge : protected ofThread {
   public:
+	
 	ofxKinectCommonBridge();
 
 	// new API
@@ -97,7 +103,7 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	void drawIR( float x, float y, float w, float h );
 
-	vector<Skeleton> &getSkeletons();
+	//vector<Skeleton> &getSkeletons();
 	void drawSkeleton(int index);
 
 	ofTexture &getRawDepthTexture() {
@@ -116,13 +122,13 @@ class ofxKinectCommonBridge : protected ofThread {
   private:
 
     KCBHANDLE hKinect;
-	KINECT_IMAGE_FRAME_FORMAT depthFormat;
-	KINECT_IMAGE_FRAME_FORMAT colorFormat;
-	NUI_SKELETON_FRAME k4wSkeletons;
+	//KINECT_IMAGE_FRAME_FORMAT depthFormat;
+	ColorImageFormat colorFormat;
+	//NUI_SKELETON_FRAME k4wSkeletons;
 
   	bool bInited;
 	bool bStarted;
-	vector<Skeleton> skeletons;
+	//vector<Skeleton> skeletons;
 
 	//quantize depth buffer to 8 bit range
 	vector<unsigned char> depthLookupTable;
@@ -170,11 +176,11 @@ class ofxKinectCommonBridge : protected ofThread {
 	bool mappingDepthToColor;
 	bool beginMappingColorToDepth;
 
-	NUI_IMAGE_RESOLUTION colorRes;
-	NUI_IMAGE_RESOLUTION depthRes;
+	//NUI_IMAGE_RESOLUTION colorRes;
+	//NUI_IMAGE_RESOLUTION depthRes;
 
-	INuiSensor *nuiSensor;
-	INuiCoordinateMapper *mapper;
+	//INuiSensor *nuiSensor;
+	//INuiCoordinateMapper *mapper;
 
 
 };
