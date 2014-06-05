@@ -163,6 +163,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofPixels irPixels;
 	ofPixels irPixelsBack;
 
+	ofPixels bodyIndexPixelsBack;
 	ofPixels bodyIndexPixels;
 
 	skeletonBackBuffer skeletonBackBuffer[6];

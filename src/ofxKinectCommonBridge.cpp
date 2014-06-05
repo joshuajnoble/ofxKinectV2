@@ -191,6 +191,24 @@ void ofxKinectCommonBridge::update()
 	} else {
 		bNeedsUpdateSkeleton = false;
 	}
+
+
+	if (bNeedsUpdateBodyIndex)
+	{
+		
+		swap(bodyIndexPixelsBack, bodyIndexPixels);
+
+		if (bProgrammableRenderer)
+		{
+			bodyIndexTex.loadData(bodyIndexPixels, GL_R8);
+		}
+		else
+		{
+			bodyIndexTex.loadData(bodyIndexPixels, GL_LUMINANCE);
+		}
+
+		bNeedsUpdateBodyIndex = false;
+	}
 }
 
 //------------------------------------
@@ -466,9 +484,10 @@ bool ofxKinectCommonBridge::initBodyIndexStream()
 	KCBGetBodyIndexFrameDescription(hKinect, &bodyIndexFrameDescription);
 
 	bodyIndexPixels.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
+	bodyIndexPixelsBack.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
 
 	pBodyIndexFrame = new KCBBodyIndexFrame();
-	pBodyIndexFrame->Buffer = bodyIndexPixels.getPixels();
+	pBodyIndexFrame->Buffer = bodyIndexPixelsBack.getPixels();
 	pBodyIndexFrame->Size = bodyIndexFrameDescription.lengthInPixels;
 
 	bodyIndexTex.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, GL_LUMINANCE);
