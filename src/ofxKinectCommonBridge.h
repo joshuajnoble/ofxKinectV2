@@ -107,7 +107,8 @@ class ofxKinectCommonBridge : protected ofThread {
 	void drawBodyIndex(float x, float y);
 
 	//vector<Skeleton> &getSkeletons();
-	void drawSkeleton(int index);
+	void drawSkeleton(int index, ofVec2f scale);
+	void drawAllSkeletons(ofVec2f scale);
 
 	ofTexture &getRawDepthTexture() {
 		return rawDepthTex;
@@ -186,18 +187,10 @@ class ofxKinectCommonBridge : protected ofThread {
 	bool mappingDepthToColor;
 	bool beginMappingColorToDepth;
 
-	//NUI_IMAGE_RESOLUTION colorRes;
-	//NUI_IMAGE_RESOLUTION depthRes;
-
-	//INuiSensor *nuiSensor;
-	//INuiCoordinateMapper *mapper;
-
-	KCBDepthFrame* pDepthFrame;
-	KCBColorFrame* pColorFrame;
-	KCBInfraredFrame* pInfraredFrame;
+	KCBDepthFrame *pDepthFrame, *pDepthFrameBack;
+	KCBColorFrame *pColorFrame, *pColorFrameBack;
+	KCBInfraredFrame *pInfraredFrame, *pInfraredFrameBack;
 	//KCBBodyFrame* pBodyFrame; // not using this yet
-	//IBodyFrame *pbodyFrame;
-	//IBody *pBodies[6];
 
 	JointOrientation jointOrients[JointType_Count];
 	Joint joints[JointType_Count];
@@ -208,4 +201,6 @@ class ofxKinectCommonBridge : protected ofThread {
 	KCBFrameDescription depthFrameDescription;
 	KCBFrameDescription irFrameDescription;
 	KCBFrameDescription bodyIndexFrameDescription;
+
+	pair<JointType, JointType> skeletonDrawOrder[JointType_Count];
 };

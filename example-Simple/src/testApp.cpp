@@ -4,7 +4,6 @@
 void testApp::setup(){
 
 	kinect.initSensor();
-	//kinect.initIRStream(640, 480);
 	kinect.initColorStream(true);
 	kinect.initDepthStream(true);
 	kinect.initSkeletonStream(true);
@@ -22,9 +21,11 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw()
 {
+	ofBackground(0, 255);
 	//kinect.draw(0,0);
-	//kinect.drawDepth(100, 0);
-	kinect.drawSkeleton(0);
+	kinect.drawDepth(0, 0);
+	//kinect.drawSkeleton(0);
+	kinect.drawAllSkeletons(ofVec2f(640,480));
 }
 
 //--------------------------------------------------------------

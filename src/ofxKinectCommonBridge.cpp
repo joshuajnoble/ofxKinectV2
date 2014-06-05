@@ -30,6 +30,41 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	bProgrammableRenderer = false;
 	
 	setDepthClipping();
+
+
+	skeletonDrawOrder[0] = make_pair<JointType, JointType>(JointType_Head, JointType_Neck);
+	skeletonDrawOrder[1] = make_pair<JointType, JointType>(JointType_Neck, JointType_SpineShoulder);
+	skeletonDrawOrder[2] = make_pair<JointType, JointType>(JointType_SpineShoulder, JointType_SpineMid);
+	skeletonDrawOrder[3] = make_pair<JointType, JointType>(JointType_SpineMid, JointType_SpineBase);
+	skeletonDrawOrder[4] = make_pair<JointType, JointType>(JointType_SpineShoulder, JointType_ShoulderRight);
+	skeletonDrawOrder[5] = make_pair<JointType, JointType>(JointType_SpineShoulder, JointType_ShoulderLeft);
+	skeletonDrawOrder[6] = make_pair<JointType, JointType>(JointType_SpineBase, JointType_HipRight);
+	skeletonDrawOrder[7] = make_pair<JointType, JointType>(JointType_SpineBase, JointType_HipLeft);
+
+	// Right Arm    
+	skeletonDrawOrder[8] = make_pair<JointType, JointType>(JointType_ShoulderRight, JointType_ElbowRight);
+	skeletonDrawOrder[9] = make_pair<JointType, JointType>(JointType_ElbowRight, JointType_WristRight);
+	skeletonDrawOrder[10] = make_pair<JointType, JointType>(JointType_WristRight, JointType_HandRight);
+	skeletonDrawOrder[11] = make_pair<JointType, JointType>(JointType_HandRight, JointType_HandTipRight);
+	skeletonDrawOrder[12] = make_pair<JointType, JointType>(JointType_WristRight, JointType_ThumbRight);
+
+	// Left Arm
+	skeletonDrawOrder[13] = make_pair<JointType, JointType>(JointType_ShoulderLeft, JointType_ElbowLeft);
+	skeletonDrawOrder[14] = make_pair<JointType, JointType>(JointType_ElbowLeft, JointType_WristLeft);
+	skeletonDrawOrder[15] = make_pair<JointType, JointType>(JointType_WristLeft, JointType_HandLeft);
+	skeletonDrawOrder[16] = make_pair<JointType, JointType>(JointType_HandLeft, JointType_HandTipLeft);
+	skeletonDrawOrder[17] = make_pair<JointType, JointType>(JointType_WristLeft, JointType_ThumbLeft);
+
+	// Right Leg
+	skeletonDrawOrder[18] = make_pair<JointType, JointType>(JointType_HipRight, JointType_KneeRight);
+	skeletonDrawOrder[19] = make_pair<JointType, JointType>(JointType_KneeRight, JointType_AnkleRight);
+	skeletonDrawOrder[20] = make_pair<JointType, JointType>(JointType_AnkleRight, JointType_FootRight);
+
+	// Left Leg
+	skeletonDrawOrder[21] = make_pair<JointType, JointType>(JointType_HipLeft, JointType_KneeLeft);
+	skeletonDrawOrder[22] = make_pair<JointType, JointType>(JointType_KneeLeft, JointType_AnkleLeft);
+	skeletonDrawOrder[23] = make_pair<JointType, JointType>(JointType_AnkleLeft, JointType_FootLeft);
+
 }
 
 //---------------------------------------------------------------------------
@@ -89,15 +124,16 @@ void ofxKinectCommonBridge::update()
 		bIsFrameNewVideo = true;
 		bNeedsUpdateVideo = false;
 
-		swap(videoPixelsBack, videoPixels);
+		//swap(videoPixelsBack, videoPixels);
+		swap(pColorFrame, pColorFrameBack);
 
 		if(bUseTexture) {
 			if(bVideoIsInfrared) 
 			{
 				if(bProgrammableRenderer){
-					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_RED);
+					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RED);
 				} else {
-					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_LUMINANCE16);
+					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_LUMINANCE16);
 				}
 			} 
 			else 
@@ -106,9 +142,9 @@ void ofxKinectCommonBridge::update()
 					// programmable renderer likes this
 					// TODO
 					// swizzle this to rgb & a -> GL_ONE
-					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_BGRA);
+					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_BGRA);
 				} else {
-					videoTex.loadData(videoPixels.getPixels(), colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
+					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
 				}
 			}
 		}
@@ -118,34 +154,31 @@ void ofxKinectCommonBridge::update()
 
 
 	// update depth pixels and texture if necessary
-	if(bNeedsUpdateDepth){
+	if(bNeedsUpdateDepth)
+	{
 
-		swap(depthPixelsRawBack, depthPixelsRaw);
-		swap(depthPixelsBack, depthPixels);
+		//swap(depthPixelsRawBack, depthPixelsRaw);
+		swap(pDepthFrameBack, pDepthFrame);
 
 		if(mappingColorToDepth) {
 			beginMappingColorToDepth = true;
 		}
 
 		bIsFrameNewDepth = true;
-		//swap(depthPixelsRaw, depthPixelsRawBack);
 		bNeedsUpdateDepth = false;
 
 		for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
-			depthPixels[i] = depthLookupTable[ ofClamp(depthPixelsRaw[i] >> 4, 0, depthLookupTable.size()-1 ) ];
-			depthPixelsRaw[i] = depthPixelsRaw[i] >> 4;
+			depthPixels[i] = depthLookupTable[ofClamp(pDepthFrame->Buffer[i] >> 4, 0, depthLookupTable.size() - 1)];
+			pDepthFrame->Buffer[i] = pDepthFrame->Buffer[i] >> 4;
 		}
-		//}
-
 
 		if(bUseTexture) {
-			//depthTex.loadData(depthPixels.getPixels(), K2_IR_WIDTH, K2_IR_HEIGHT, GL_LUMINANCE);
 			if( bProgrammableRenderer ) {
 				depthTex.loadData(depthPixels.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED);
 				rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED);
 			} else {
 				depthTex.loadData(depthPixels.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
-				rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
+				rawDepthTex.loadData(pDepthFrame->Buffer, depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
 			}
 		}
 	} else {
@@ -156,32 +189,9 @@ void ofxKinectCommonBridge::update()
 	if(bUsingSkeletons && bNeedsUpdateSkeleton)
 	{	
 		swap(skeletons, backSkeletons);
-
-	//	bIsSkeletonFrameNew = true;
-	//	bNeedsUpdateSkeleton = false;
-	//	bool foundSkeleton = false;
-		/*		for ( int i = 0; i < BODY_COUNT; i++ ) 
-		{
-			//if (skeletonBackBuffer[i].size() > 0)
-			{
-
-				for (int j = 0; j < JointType_Count; j++)
-				{
-					if (skeletonBackBuffer[i].at(j).trackingState == TrackingState_Tracked || skeletonBackBuffer[i].at(j).trackingState == TrackingState_Inferred)
-					{
-						cout << skeletonBackBuffer[i].at(j).kcbJoint.Position.X << " " << skeletonBackBuffer[i].at(j).kcbJoint.Position.Y << " ";
-					}
-				}
-
-			}*/
-
-		}
-	//
-
-
-	} else {
 		bNeedsUpdateSkeleton = false;
-	}
+
+	} 
 
 
 	if (bNeedsUpdateBodyIndex)
@@ -293,44 +303,64 @@ void ofxKinectCommonBridge::drawBodyIndex(float x, float y) {
 	bodyIndexTex.draw(x, y);
 }
 
-//
-void ofxKinectCommonBridge::drawSkeleton( int index )
+void ofxKinectCommonBridge::drawAllSkeletons(ofVec2f scale)
 {
-	// Iterate through skeletons
-	uint32_t i = 0;
+	for (int i = 0; i < skeletons.size(); i++)
+	{
+		if (skeletons[i].tracked)
+		{
+			drawSkeleton(i, scale);
+		}
+	}
+}
+
+//
+void ofxKinectCommonBridge::drawSkeleton( int index, ofVec2f scale )
+{
 	if(index >= skeletons.size())
 	{
 		ofLog() << " skeleton index too high " << endl;
 		return;
 	}
 
+	if (!skeletons[index].tracked)
+	{
+		ofLog() << " skeleton index not being tracked " << endl;
+		return;
+	}
+
 	ofVec3f lastPosition(-1,-1,-1);
+	ofVec3f normalize(0.5, 0.5, 0);
+	ofVec3f scale3(scale.x, scale.y, 1);
 
 	// Iterate through joints
-	for (map<JointType, Kv2Joint>::iterator it = skeletons[index].joints.begin(); it != skeletons[index].joints.end(); ++it)
+	//for (map<JointType, Kv2Joint>::iterator it = skeletons[index].joints.begin(); it != skeletons[index].joints.end(); ++it)
+	//{
+
+	//	//// Get position and rotation
+	//	Kv2Joint joint = it->second;
+
+	//	ofSetColor(255, 0, 0);
+	//	ofVec3f screenPosition = (joint.getPosition() + normalize) * scale3;
+	//	screenPosition.y = 480 - screenPosition.y;
+	//	ofCircle(screenPosition, 10);
+
+	//	lastPosition = joint.getPosition() * scale;
+	//}
+
+	for (int i = 0; i < JointType_Count; i++)
 	{
+		ofSetLineWidth(2);
 
-		//// Get position and rotation
-		//Joint joint = it->second;
+		ofVec3f lineBegin = (skeletons[index].joints[skeletonDrawOrder[i].first].getPosition() + normalize) * scale3;
+		lineBegin.y = scale3.y - lineBegin.y;
+		ofVec3f lineEnd = (skeletons[index].joints[skeletonDrawOrder[i].second].getPosition() + normalize) * scale3;
+		lineEnd.y = scale3.y - lineEnd.y;
 
-		//ofSetColor(255, 255, 255);
-		//ofSetLineWidth(3.0); // fat lines
-		////int startJoint = joint.getStartJoint();
-		////// do we have a start joint?
-		//if ( lastPosition.z != -1 ) // this is dum 
-		//{
-		//	// draw the line
-		//	ofLine(lastPosition, ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z));
-		//}
-
-		////ofSetColor(255, 0, 0);
-		////// Draw joint
-		////ofCircle( bone.getScreenPosition(), 10 );
-
-		//ofSetColor(255, 0, 0);
-		//ofCircle(ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z), 10);
-
-		//lastPosition.set(joint.Position.X, joint.Position.Y, joint.Position.Z);
+		ofSetColor(0, 255, 0);
+		ofLine(lineBegin, lineEnd);
+		ofSetColor(255, 0, 0);
+		ofCircle(lineEnd, 10);
 	}
 
 	ofSetColor(255, 255, 255);
@@ -380,8 +410,12 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 	depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 	pDepthFrame = new KCBDepthFrame();
-	pDepthFrame->Buffer = depthPixelsRawBack.getPixels();
+	pDepthFrame->Buffer = depthPixelsRaw.getPixels();
 	pDepthFrame->Size = depthFrameDescription.lengthInPixels;
+
+	pDepthFrameBack = new KCBDepthFrame();
+	pDepthFrameBack->Buffer = depthPixelsRawBack.getPixels();
+	pDepthFrameBack->Size = depthFrameDescription.lengthInPixels;
 
 	if(bUseTexture){
 
@@ -419,9 +453,15 @@ bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth )
 
 
 	pColorFrame = new KCBColorFrame();
-	pColorFrame->Buffer = videoPixelsBack.getPixels();
+	pColorFrame->Buffer = videoPixels.getPixels();
 	pColorFrame->Size = colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel;
 	pColorFrame->Format = ColorImageFormat_Rgba;
+
+
+	pColorFrameBack = new KCBColorFrame();
+	pColorFrameBack->Buffer = videoPixelsBack.getPixels();
+	pColorFrameBack->Size = colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel;
+	pColorFrameBack->Format = ColorImageFormat_Rgba;
 
 	//HRESULT hr = KCBCreateColorFrame(ColorImageFormat_Rgba, colorFrameDescription, &pColorFrame);
 	return true;
@@ -439,6 +479,10 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 	KCBGetInfraredFrameDescription(hKinect, &irFrameDescription);
 
 	irPixelsRaw.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+
+	pInfraredFrameBack = new KCBInfraredFrame();
+	pInfraredFrameBack->Buffer = irPixelsBackRaw.getPixels();
+	pInfraredFrameBack->Size = irFrameDescription.lengthInPixels;
 
 	pInfraredFrame = new KCBInfraredFrame();
 	pInfraredFrame->Buffer = irPixelsRaw.getPixels();
@@ -491,6 +535,7 @@ bool ofxKinectCommonBridge::initSkeletonStream( bool seated )
 	}
 
 	skeletons.resize(6);
+	backSkeletons.resize(6);
 
 	//HRESULT hr = KCBCreateBodyFrame(&pBodyFrame);
 	//if (hr >= 0){
@@ -537,14 +582,16 @@ void ofxKinectCommonBridge::threadedFunction(){
 	while(isThreadRunning()) {
 
 		// KCBAllFramesReady
-		if (KCBIsFrameReady(hKinect, FrameSourceTypes_Depth) && (SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame) == 0)))
+		//lock();
+		if (SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
 		{
 			bNeedsUpdateDepth = true;
         }
+		//unlock();
 
 		if(bVideoIsInfrared)
 		{
-			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Infrared) && SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
+			if (SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
 			{
 				bNeedsUpdateVideo = true;
 				// do we need to do this anymore?
@@ -556,7 +603,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 		}
 		else
 		{
-			if (KCBIsFrameReady(hKinect, FrameSourceTypes_Color) && (SUCCEEDED(KCBGetColorFrame	(hKinect, pColorFrame)) == 0))
+			if (SUCCEEDED(KCBGetColorFrame(hKinect, pColorFrame)))
 			{
 				bNeedsUpdateVideo = true;
 			}
@@ -569,16 +616,8 @@ void ofxKinectCommonBridge::threadedFunction(){
 			IBody* ppBodies[BODY_COUNT] = { 0 };
 			if (SUCCEEDED(KCBGetIBodyFrame(hKinect, &pBodyFrame)))
 			{
-				/*pBodyFrame->Bodies*/
 				HRESULT hr = pBodyFrame->GetAndRefreshBodyData(BODY_COUNT, ppBodies);
 				bNeedsUpdateSkeleton = true;
-
-
-				// clear everything out
-				//for (int i = 0; i < 6; i++)
-				//{
-					//skeletonBackBuffer[i].clear();
-				//}
 
 				// buffer for later
 				for (int i = 0; i < BODY_COUNT; ++i)
@@ -597,9 +636,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 					HRESULT hr = pBody->get_IsTracked(&isTracked);
 					if (isTracked)
 					{
-//						Joint joints[JointType_Count];
 						HRESULT hrJoints = ppBodies[i]->GetJoints(JointType_Count, joints);
-//						JointOrientation jointOrients[JointType_Count];
 						HRESULT hrOrient = ppBodies[i]->GetJointOrientations(JointType_Count, jointOrients);
 						if (FAILED(hrJoints))
 						{
@@ -616,18 +653,11 @@ void ofxKinectCommonBridge::threadedFunction(){
 							for (int j = 0; j < JointType_Count; ++j)
 							{
 								backSkeletons[i].joints[joints[j].JointType] = Kv2Joint(joints[j], jointOrients[j]);
-
-								/*Kv2JointBackBuffer bb;
-								bb.kcbJoint = joints[j];
-								bb.kcbOrientation = jointOrients[j];
-								bb.type = joints[j].JointType;
-								bb.trackingState = joints[j].TrackingState;
-								skeletonBackBuffer[i].push_back(bb);*/
 							}
 						}
 						backSkeletons[i].tracked = true;
 					}
-					pBody->Release();//ppBodies[i]->Release();
+					pBody->Release();
 				}
 
 				// all done clean up
