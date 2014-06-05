@@ -605,26 +605,6 @@ void ofxKinectCommonBridge::threadedFunction(){
 			}
 		//unlock();
 
-		if(bVideoIsInfrared)
-		{
-			if (SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
-			{
-				bNeedsUpdateVideo = true;
-				// do we need to do this anymore?
-				for (int i = 0; i <colorFrameDescription.width * colorFrameDescription.height; i++)
-				{
-					videoPixels.getPixels()[i] = reinterpret_cast<USHORT*>(irPixelByteArray)[i] >> 8;
-				}
-			}
-		}
-		else
-		{
-			if (SUCCEEDED(KCBGetColorFrame(hKinect, pColorFrame)))
-			{
-				bNeedsUpdateVideo = true;
-			}
-		}
-
 		if(bUsingSkeletons) 
 		{
 			LONGLONG timestamp;
@@ -687,6 +667,26 @@ void ofxKinectCommonBridge::threadedFunction(){
 			if (SUCCEEDED(KCBGetBodyIndexFrame(hKinect, pBodyIndexFrame)))
 			{
 				bNeedsUpdateBodyIndex = true;
+			}
+		}
+
+		if (bVideoIsInfrared)
+		{
+			if (SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
+			{
+				bNeedsUpdateVideo = true;
+				// do we need to do this anymore?
+				for (int i = 0; i <colorFrameDescription.width * colorFrameDescription.height; i++)
+				{
+					videoPixels.getPixels()[i] = reinterpret_cast<USHORT*>(irPixelByteArray)[i] >> 8;
+				}
+			}
+		}
+		else
+		{
+			if (SUCCEEDED(KCBGetColorFrame(hKinect, pColorFrame)))
+			{
+				bNeedsUpdateVideo = true;
 			}
 		}
 
