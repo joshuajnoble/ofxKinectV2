@@ -14,6 +14,7 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	beginMappingColorToDepth = false;
 	bNeedsUpdateSkeleton = false;
 	bUsingBodyIndex = false;
+	bNeedsUpdateBodyIndex = false;
 	bIsFrameNewVideo = false;
 	bNeedsUpdateVideo = false;
 	bIsFrameNewDepth = false;
@@ -142,7 +143,7 @@ void ofxKinectCommonBridge::update()
 					// programmable renderer likes this
 					// TODO
 					// swizzle this to rgb & a -> GL_ONE
-					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_BGRA);
+					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
 				} else {
 					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
 				}
@@ -201,7 +202,7 @@ void ofxKinectCommonBridge::update()
 
 		if (bProgrammableRenderer)
 		{
-			bodyIndexTex.loadData(pBodyIndexFrame->Buffer, bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, GL_R8);
+			bodyIndexTex.loadData(pBodyIndexFrame->Buffer, bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, GL_RED);
 		}
 		else
 		{
@@ -448,7 +449,7 @@ bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth )
 	videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
 	videoPixelsBack.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
 	if(bUseTexture){
-		videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_BGRA);
+		videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
 	}
 
 
@@ -500,20 +501,26 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 	}
 
 	bInited = true;
-	ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "cannot initialize stream";
+	ofLogError("ofxKinectCommonBridge::initIRStream") << "cannot initialize stream";
 	return true;
 }
 
 bool ofxKinectCommonBridge::initBodyIndexStream()
 {
 	if (bStarted){
-		ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "Cannot configure once the sensor has already started";
+		ofLogError("ofxKinectCommonBridge::initBodyIndexStream") << "Cannot configure once the sensor has already started";
 		return false;
 	}
-	KCBGetBodyIndexFrameDescription(hKinect, &bodyIndexFrameDescription);
+	HRESULT hr = KCBGetBodyIndexFrameDescription(hKinect, &bodyIndexFrameDescription);
 
-	bodyIndexPixels.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
-	bodyIndexPixelsBack.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
+	if (!SUCCEEDED(hr))
+	{
+		ofLogError("ofxKinectCommonBridge::initBodyIndexStream") << "cannot initialize stream";
+		return false;
+	}
+
+	bodyIndexPixels.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	bodyIndexPixelsBack.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 	pBodyIndexFrameBack = new KCBBodyIndexFrame();
 	pBodyIndexFrameBack->Buffer = bodyIndexPixelsBack.getPixels();
@@ -523,9 +530,14 @@ bool ofxKinectCommonBridge::initBodyIndexStream()
 	pBodyIndexFrame->Buffer = bodyIndexPixels.getPixels();
 	pBodyIndexFrame->Size = bodyIndexFrameDescription.lengthInPixels;
 
-	bodyIndexTex.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, GL_LUMINANCE);
-	ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "cannot initialize stream";
-
+	if (bProgrammableRenderer)
+	{
+		bodyIndexTex.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, GL_R8);
+	}
+	else
+	{
+		bodyIndexTex.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, GL_LUMINANCE);
+	}
 	bUsingBodyIndex = true;
 
 	return true; //??
@@ -587,10 +599,10 @@ void ofxKinectCommonBridge::threadedFunction(){
 
 		// KCBAllFramesReady
 		//lock();
-		if (SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
-		{
-			bNeedsUpdateDepth = true;
-        }
+			if (SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
+			{
+				bNeedsUpdateDepth = true;
+			}
 		//unlock();
 
 		if(bVideoIsInfrared)

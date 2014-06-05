@@ -6,8 +6,8 @@
 //========================================================================
 int main( ){
 
-	//ofPtr<ofBaseRenderer> renderer(new ofGLProgrammableRenderer(true));
-	//ofSetCurrentRenderer(renderer);
+	ofPtr<ofBaseRenderer> renderer(new ofGLProgrammableRenderer(true));
+	ofSetCurrentRenderer(renderer);
 
 	ofSetupOpenGL(1920,1080, OF_WINDOW);			// <-------- setup the GL context
 
