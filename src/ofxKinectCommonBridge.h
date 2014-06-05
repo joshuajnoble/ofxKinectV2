@@ -5,9 +5,6 @@
 #include "KCBv2LIB.h"
 #pragma comment (lib, "KCBv2.lib") // add path to lib additional dependency dir $(TargetDir)
 
-typedef map<JointType, Kv2Joint> Skeleton;
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // not sure this is right
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,30 +24,12 @@ public:
 		ofJointPosition.set(joint.Position.X, joint.Position.Y, joint.Position.Z);
 	}
 
-	_Joint getJoint() {
-		return kcbJoint;
-	}
-
-	_JointOrientation getOrientation() {
-		return kcbOrientation;
-	}
-
 private:
 	ofVec3f ofJointPosition;
 	ofQuaternion ofJointRotation;
-	_JointOrientation kcbOrientation;
-	_Joint kcbJoint;
 };
 
-struct Kv2JointBackBuffer
-{
-	_JointOrientation kcbOrientation;
-	_Joint kcbJoint;
-	JointType type;
-	TrackingState trackingState;
-};
-
-typedef vector<Kv2JointBackBuffer> skeletonBackBuffer;
+typedef map<JointType, Kv2Joint> Skeleton;
 
 class ofxKinectCommonBridge : protected ofThread {
   public:
@@ -165,8 +144,6 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	ofPixels bodyIndexPixelsBack;
 	ofPixels bodyIndexPixels;
-
-	skeletonBackBuffer skeletonBackBuffer[6];
 
 	bool bIsFrameNewVideo;
 	bool bNeedsUpdateVideo;
