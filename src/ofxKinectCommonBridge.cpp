@@ -157,21 +157,19 @@ void ofxKinectCommonBridge::update()
 
 		for ( int i = 0; i < 6; i++ ) 
 		{
-			skeletons.at( i ).clear();
-			BOOLEAN isTracked;
-			pBodies[i]->get_IsTracked(&isTracked);
-			if (isTracked)
+			if (skeletonBackBuffer[i].size() > 0)
 			{
-
-				Joint joints[JointType_Count];
-				pBodies[i]->GetJoints(JointType_Count, &joints[0]);
 
 				for (int j = 0; j < JointType_Count; j++)
 				{
-//					skeletons.at(i).insert(make_pair(joints[j].JointType, joints[j]));
-					cout << joints[j].Position.X << " " << joints[j].Position.Y << " ";
+					if (skeletonBackBuffer[i].at(j).trackingState == TrackingState_Tracked || skeletonBackBuffer[i].at(j).trackingState == TrackingState_Inferred)
+					{
+						cout << skeletonBackBuffer[i].at(j).kcbJoint.Position.X << " " << skeletonBackBuffer[i].at(j).kcbJoint.Position.Y << " ";
+					}
 				}
+
 			}
+
 			//if (  k4wSkeletons.SkeletonData[ i ].eTrackingState == NUI_SKELETON_TRACKED || k4wSkeletons.SkeletonData[ i ].eTrackingState == NUI_SKELETON_POSITION_ONLY ) {
 			//	//cout << " we have a skeleton " << ofGetElapsedTimeMillis() << endl;
 			//	_NUI_SKELETON_BONE_ORIENTATION bones[ NUI_SKELETON_POSITION_COUNT ];
@@ -520,7 +518,7 @@ void ofxKinectCommonBridge::stop() {
 
 		KCBCloseSensor(&hKinect);
 
-		delete pBodies; //KCBReleaseBodyFrame(&pBodyFrame);
+		//delete pBodies; //KCBReleaseBodyFrame(&pBodyFrame);
 		KCBReleaseBodyIndexFrame(&pBodyIndexFrame);
 		KCBReleaseColorFrame(&pColorFrame);
 		KCBReleaseDepthFrame(&pDepthFrame);
@@ -574,40 +572,53 @@ void ofxKinectCommonBridge::threadedFunction(){
 				/*pBodyFrame->Bodies*/
 				HRESULT hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
 				bNeedsUpdateSkeleton = true;
-			}
 
-			delete pBodyFrame;
-			
-			// clear everything out
-			for (int i = 0; i < 6; i++)
-			{
-				skeletonBackBuffer[i].clear();
-			}
 
-			// buffer for later
-			for (int i = 0; i < _countof(ppBodies); ++i)
-			{
-				Joint joints[JointType_Count];
-				HRESULT hr = ppBodies[i]->GetJoints(_countof(joints), joints);
-
-				JointOrientation jointOrients[JointType_Count];
-				hr = ppBodies[i]->GetJointOrientations(_countof(jointOrients), jointOrients);
-				if (SUCCEEDED(hr))
+				// clear everything out
+				for (int i = 0; i < 6; i++)
 				{
-					for (int j = 0; j < _countof(joints); ++j)
-					{
-						//jointPoints[j] = BodyToScreen(joints[j].Position, width, height);
-
-						Kv2JointBackBuffer bb;
-						bb.kcbJoint = joints[j];
-						bb.kcbOrientation = jointOrients[j];
-						bb.type = joints[j].JointType;
-						bb.trackingState = joints[j].TrackingState;
-
-						skeletonBackBuffer[i].push_back(bb);
-					}
+					skeletonBackBuffer[i].clear();
 				}
-				delete ppBodies[i];
+
+				// buffer for later
+				for (int i = 0; i < _countof(ppBodies); ++i)
+				{
+					IBody *pBody = ppBodies[i];
+					BOOLEAN isTracked = false;
+					
+					if (pBody == NULL)
+					{
+						continue;
+					}
+
+					HRESULT hr = pBody->get_IsTracked(&isTracked);
+
+					if (isTracked)
+					{
+						Joint joints[JointType_Count];
+						HRESULT hr = ppBodies[i]->GetJoints(_countof(joints), joints);
+
+						JointOrientation jointOrients[JointType_Count];
+						hr = ppBodies[i]->GetJointOrientations(_countof(jointOrients), jointOrients);
+						if (SUCCEEDED(hr))
+						{
+							for (int j = 0; j < _countof(joints); ++j)
+							{
+								Kv2JointBackBuffer bb;
+								bb.kcbJoint = joints[j];
+								bb.kcbOrientation = jointOrients[j];
+								bb.type = joints[j].JointType;
+								bb.trackingState = joints[j].TrackingState;
+
+								skeletonBackBuffer[i].push_back(bb);
+							}
+						}
+					}
+					pBody->Release();//ppBodies[i]->Release();
+				}
+
+				// all done clean up
+				pBodyFrame->Release();
 			}
 		}
 

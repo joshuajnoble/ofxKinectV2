@@ -5,27 +5,8 @@
 #include "KCBv2LIB.h"
 #pragma comment (lib, "KCBv2.lib") // add path to lib additional dependency dir $(TargetDir)
 
-typedef map<JointType, Joint> Skeleton;
+typedef map<JointType, Kv2Joint> Skeleton;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// not sure this is right
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class Kv2Skeleton
-{
-
-public:
-
-	Skeleton getSkeleton() {
-		return skeleton;
-	}
-
-private:
-
-	IBody *body;
-	Skeleton skeleton;
-
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // not sure this is right
@@ -220,7 +201,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	KCBInfraredFrame* pInfraredFrame;
 	//KCBBodyFrame* pBodyFrame; // not using this yet
 	//IBodyFrame *pbodyFrame;
-	IBody *pBodies[6];
+	//IBody *pBodies[6];
 	KCBBodyIndexFrame* pBodyIndexFrame;
 
 	KCBFrameDescription colorFrameDescription;
