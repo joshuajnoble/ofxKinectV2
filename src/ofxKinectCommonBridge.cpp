@@ -65,11 +65,11 @@ bool ofxKinectCommonBridge::isFrameNewVideo(){
 bool ofxKinectCommonBridge::isFrameNewDepth(){
 	return bIsFrameNewDepth;
 }
-//
-//bool ofxKinectCommonBridge::isNewSkeleton() {
-//	return bNeedsUpdateSkeleton;
-//}
-//
+
+bool ofxKinectCommonBridge::isNewSkeleton() {
+	return bNeedsUpdateSkeleton;
+}
+
 //vector<Skeleton> &ofxKinectCommonBridge::getSkeletons() {
 //	return skeletons;
 //}
@@ -150,14 +150,14 @@ void ofxKinectCommonBridge::update()
 	// update skeletons if necessary
 	if(bUsingSkeletons && bNeedsUpdateSkeleton)
 	{	
+		swap(skeletons, backSkeletons);
 
 	//	bIsSkeletonFrameNew = true;
 	//	bNeedsUpdateSkeleton = false;
 	//	bool foundSkeleton = false;
-
-		for ( int i = 0; i < 6; i++ ) 
+		/*		for ( int i = 0; i < BODY_COUNT; i++ ) 
 		{
-			/*if (skeletonBackBuffer[i].size() > 0)
+			//if (skeletonBackBuffer[i].size() > 0)
 			{
 
 				for (int j = 0; j < JointType_Count; j++)
@@ -585,17 +585,17 @@ void ofxKinectCommonBridge::threadedFunction(){
 				for (int i = 0; i < BODY_COUNT; ++i)
 				{
 					backSkeletons[i].joints.clear();
+					backSkeletons[i].tracked = false;
 
 					IBody *pBody = ppBodies[i];
 					BOOLEAN isTracked = false;
-					
+
 					if (pBody == NULL)
 					{
 						continue;
 					}
 
 					HRESULT hr = pBody->get_IsTracked(&isTracked);
-
 					if (isTracked)
 					{
 //						Joint joints[JointType_Count];
@@ -627,9 +627,6 @@ void ofxKinectCommonBridge::threadedFunction(){
 							}
 						}
 						backSkeletons[i].tracked = true;
-					}
-					else {
-						backSkeletons[i].tracked = false;
 					}
 					pBody->Release();//ppBodies[i]->Release();
 				}
