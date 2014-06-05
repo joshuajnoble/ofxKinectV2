@@ -89,6 +89,8 @@ void ofxKinectCommonBridge::update()
 		bIsFrameNewVideo = true;
 		bNeedsUpdateVideo = false;
 
+		swap(videoPixelsBack, videoPixels);
+
 		if(bUseTexture) {
 			if(bVideoIsInfrared) 
 			{
@@ -117,6 +119,9 @@ void ofxKinectCommonBridge::update()
 
 	// update depth pixels and texture if necessary
 	if(bNeedsUpdateDepth){
+
+		swap(depthPixelsRawBack, depthPixelsRaw);
+		swap(depthPixelsBack, depthPixels);
 
 		if(mappingColorToDepth) {
 			beginMappingColorToDepth = true;
@@ -375,7 +380,7 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 	depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 	pDepthFrame = new KCBDepthFrame();
-	pDepthFrame->Buffer = depthPixelsRaw.getPixels();
+	pDepthFrame->Buffer = depthPixelsRawBack.getPixels();
 	pDepthFrame->Size = depthFrameDescription.lengthInPixels;
 
 	if(bUseTexture){
@@ -386,10 +391,10 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 			depthTex.setRGToRGBASwizzles(true);
 
 			//rawDepthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
-			rawDepthTex.allocate(depthPixelsRaw, true);
+			/*rawDepthTex.allocate(depthPixelsRaw, true);
 			rawDepthTex.setRGToRGBASwizzles(true);
 
-			cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
+			cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;*/
 			//depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_RGB);
 		} else {
 			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
@@ -414,7 +419,7 @@ bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth )
 
 
 	pColorFrame = new KCBColorFrame();
-	pColorFrame->Buffer = videoPixels.getPixels();
+	pColorFrame->Buffer = videoPixelsBack.getPixels();
 	pColorFrame->Size = colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel;
 	pColorFrame->Format = ColorImageFormat_Rgba;
 
