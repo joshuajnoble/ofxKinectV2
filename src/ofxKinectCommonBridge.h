@@ -5,44 +5,11 @@
 #include "KCBv2LIB.h"
 #pragma comment (lib, "KCBv2.lib") // add path to lib additional dependency dir $(TargetDir)
 
-/*
-class SkeletonBone
-{
-public:
-	enum TrackingState {
-		NotTracked,
-		Tracked,
-		Inferred
-	};
-	// lots of constness because we're putting these in a map and that
-	// copies stuff all over the place
-	const ofQuaternion getCameraRotation();
-	const ofMatrix4x4 getCameraRotationMatrix();
-
-	const ofVec3f& getStartPosition();
-	const ofVec3f getScreenPosition();
-	const ofQuaternion&	getRotation();
-	const ofMatrix4x4& getRotationMatrix();
-
-	const int getStartJoint();
-	int getEndJoint();
-
-	TrackingState getTrackingState();
-
-	SkeletonBone( const Vector4& inPosition, const _NUI_SKELETON_BONE_ORIENTATION& bone, const NUI_SKELETON_POSITION_TRACKING_STATE& trackingState );
-
-private:
-
-	ofMatrix4x4 cameraRotation;
-	int	endJoint;
-	int	startJoint;
-	ofVec3f	position;
-	ofMatrix4x4	rotation;
-	ofVec2f screenPosition;
-	TrackingState trackingState;
-};*/
-
 typedef map<JointType, Joint> Skeleton;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// not sure this is right
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Kv2Skeleton
 {
@@ -53,8 +20,6 @@ public:
 		return skeleton;
 	}
 
-	
-
 private:
 
 	IBody *body;
@@ -62,33 +27,49 @@ private:
 
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// not sure this is right
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class Kv2Joint
 {
 
 public:
 
-	ofVec4f getPosition() {
-		return ofOrientation;
+	ofVec3f getPosition() {
+		return ofJointPosition;
 	}
 
-	void setJointOrientation(_JointOrientation *jointOrientation)
+	void setJoint(_Joint joint, _JointOrientation orientation)
 	{
-		ofOrientation.set(jointOrientation->Orientation.x, jointOrientation->Orientation.y, jointOrientation->Orientation.z, jointOrientation->Orientation.w);
+		ofJointRotation.set(orientation.Orientation.x, orientation.Orientation.y, orientation.Orientation.z, orientation.Orientation.w);
+		ofJointPosition.set(joint.Position.X, joint.Position.Y, joint.Position.Z);
 	}
 
-	_Joint  getJoint() {
-		return joint;
+	_Joint getJoint() {
+		return kcbJoint;
+	}
+
+	_JointOrientation getOrientation() {
+		return kcbOrientation;
 	}
 
 private:
-	ofVec4f ofOrientation;
-	_Joint joint;
+	ofVec3f ofJointPosition;
+	ofQuaternion ofJointRotation;
+	_JointOrientation kcbOrientation;
+	_Joint kcbJoint;
 };
 
-#define K2_IR_WIDTH 512
-#define K2_IR_HEIGHT 424
-#define K2_COLOR_WIDTH 1920
-#define K2_COLOR_HEIGHT 1080
+struct Kv2JointBackBuffer
+{
+	_JointOrientation kcbOrientation;
+	_Joint kcbJoint;
+	JointType type;
+	TrackingState trackingState;
+};
+
+typedef vector<Kv2JointBackBuffer> skeletonBackBuffer;
 
 class ofxKinectCommonBridge : protected ofThread {
   public:
@@ -97,8 +78,8 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	// new API
 	bool initSensor( int id = 0 );
-	bool initDepthStream( int width, int height, bool nearMode = false, bool mapDepthToColor = false );
-	bool initColorStream( int width, int height, bool mapColorToDepth = false );
+	bool initDepthStream( bool mapDepthToColor = false );
+	bool initColorStream( bool mapColorToDepth = false );
 	bool initIRStream( int width, int height );
 	bool initSkeletonStream( bool seated );
 	bool start();
@@ -110,6 +91,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	bool isFrameNewVideo();
 	bool isFrameNewDepth();
 	bool isNewSkeleton();
+	bool initBodyIndexStream();
 
 	void setDepthClipping(float nearClip=500, float farClip=4000);
 	
@@ -143,6 +125,8 @@ class ofxKinectCommonBridge : protected ofThread {
 	void drawDepth(const ofRectangle& rect);
 
 	void drawIR( float x, float y, float w, float h );
+
+	void drawBodyIndex(float x, float y);
 
 	//vector<Skeleton> &getSkeletons();
 	void drawSkeleton(int index);
@@ -183,6 +167,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofTexture depthTex; ///< the depth texture
 	ofTexture rawDepthTex; ///<
 	ofTexture videoTex; ///< the RGB texture
+	ofTexture bodyIndexTex;
 	//ofTexture irTex;
 
 	ofPixels videoPixels;
@@ -197,6 +182,10 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofPixels irPixels;
 	ofPixels irPixelsBack;
 
+	ofPixels bodyIndexPixels;
+
+	skeletonBackBuffer skeletonBackBuffer[6];
+
 	bool bIsFrameNewVideo;
 	bool bNeedsUpdateVideo;
 	bool bIsFrameNewDepth;
@@ -205,9 +194,12 @@ class ofxKinectCommonBridge : protected ofThread {
 	bool bIsSkeletonFrameNew;
 	bool bProgrammableRenderer;
 
+	bool bNeedsUpdateBodyIndex;
+
 	bool bVideoIsInfrared;
 	bool bUsingSkeletons;
 	bool bUsingDepth;
+	bool bUsingBodyIndex;
 
 	BYTE *irPixelByteArray;
 
@@ -226,11 +218,13 @@ class ofxKinectCommonBridge : protected ofThread {
 	KCBDepthFrame* pDepthFrame;
 	KCBColorFrame* pColorFrame;
 	KCBInfraredFrame* pInfraredFrame;
-	KCBBodyFrame* pBodyFrame;
+	//KCBBodyFrame* pBodyFrame; // not using this yet
+	//IBodyFrame *pbodyFrame;
+	IBody *pBodies[6];
 	KCBBodyIndexFrame* pBodyIndexFrame;
 
 	KCBFrameDescription colorFrameDescription;
 	KCBFrameDescription depthFrameDescription;
 	KCBFrameDescription irFrameDescription;
-
+	KCBFrameDescription bodyIndexFrameDescription;
 };
