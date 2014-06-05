@@ -5,9 +5,6 @@
 #include "KCBv2LIB.h"
 #pragma comment (lib, "KCBv2.lib") // add path to lib additional dependency dir $(TargetDir)
 
-typedef map<JointType, Kv2Joint> Skeleton;
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // not sure this is right
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,9 +13,9 @@ class Kv2Joint
 {
   public:
 
-	void setJoint(_Joint kcbPosiiton, _JointOrientation kcbOrientation, JointType kcbType)
+	void setJoint(_Joint kcbPosition, _JointOrientation kcbOrientation, JointType kcbType)
 	{
-		JointOrientation.set(kcbOrientation.Orientation.x, kcbOrientation.Orientation.y, kcbOrientation.Orientation.z, kcbOrientation.Orientation.w);
+		jointOrientation.set(kcbOrientation.Orientation.x, kcbOrientation.Orientation.y, kcbOrientation.Orientation.z, kcbOrientation.Orientation.w);
 		jointPosition.set(kcbPosition.Position.X, kcbPosition.Position.Y, kcbPosition.Position.Z);
 		type = kcbType;
 	}
@@ -44,8 +41,7 @@ class Kv2Joint
 	TrackingState trackingState;
 };
 
-
-typedef vector<Kv2JointBackBuffer> skeletonBackBuffer;
+typedef map<JointType, Kv2Joint> Skeleton;
 
 class ofxKinectCommonBridge : protected ofThread {
   public:
@@ -159,9 +155,8 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofPixels irPixels;
 	ofPixels irPixelsBack;
 
+	ofPixels bodyIndexPixelsBack;
 	ofPixels bodyIndexPixels;
-
-	skeletonBackBuffer skeletonBackBuffer[6];
 
 	bool bIsFrameNewVideo;
 	bool bNeedsUpdateVideo;

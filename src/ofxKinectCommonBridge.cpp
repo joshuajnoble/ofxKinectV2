@@ -157,7 +157,7 @@ void ofxKinectCommonBridge::update()
 
 		for ( int i = 0; i < 6; i++ ) 
 		{
-			if (skeletonBackBuffer[i].size() > 0)
+			/*if (skeletonBackBuffer[i].size() > 0)
 			{
 
 				for (int j = 0; j < JointType_Count; j++)
@@ -168,28 +168,32 @@ void ofxKinectCommonBridge::update()
 					}
 				}
 
-			}
+			}*/
 
-			//if (  k4wSkeletons.SkeletonData[ i ].eTrackingState == NUI_SKELETON_TRACKED || k4wSkeletons.SkeletonData[ i ].eTrackingState == NUI_SKELETON_POSITION_ONLY ) {
-			//	//cout << " we have a skeleton " << ofGetElapsedTimeMillis() << endl;
-			//	_NUI_SKELETON_BONE_ORIENTATION bones[ NUI_SKELETON_POSITION_COUNT ];
-			//	if(SUCCEEDED(NuiSkeletonCalculateBoneOrientations( &(k4wSkeletons.SkeletonData[i]), bones ))) {
-			//		//error( hr );
-			//	}
-
-			//	for ( int j = 0; j < NUI_SKELETON_POSITION_COUNT; j++ ) 
-			//	{
-			//		SkeletonBone bone( k4wSkeletons.SkeletonData[i].SkeletonPositions[j], bones[j], k4wSkeletons.SkeletonData[i].eSkeletonPositionTrackingState[j] );
-			//		skeletons.at(i).insert( std::pair<NUI_SKELETON_POSITION_INDEX, SkeletonBone>( NUI_SKELETON_POSITION_INDEX(j), bone ) );
-			//	}
-			//	bNeedsUpdateSkeleton = true;
-			//}
 		}
 	//
 
 
 	} else {
 		bNeedsUpdateSkeleton = false;
+	}
+
+
+	if (bNeedsUpdateBodyIndex)
+	{
+		
+		swap(bodyIndexPixelsBack, bodyIndexPixels);
+
+		if (bProgrammableRenderer)
+		{
+			bodyIndexTex.loadData(bodyIndexPixels, GL_R8);
+		}
+		else
+		{
+			bodyIndexTex.loadData(bodyIndexPixels, GL_LUMINANCE);
+		}
+
+		bNeedsUpdateBodyIndex = false;
 	}
 }
 
@@ -301,27 +305,27 @@ void ofxKinectCommonBridge::drawSkeleton( int index )
 	for ( Skeleton::iterator it = skeletons.at(index).begin(); it != skeletons.at(index).end(); ++it ) 
 	{
 
-		// Get position and rotation
-		Joint joint = it->second;
+		//// Get position and rotation
+		//Joint joint = it->second;
 
-		ofSetColor(255, 255, 255);
-		ofSetLineWidth(3.0); // fat lines
-		//int startJoint = joint.getStartJoint();
-		//// do we have a start joint?
-		if ( lastPosition.z != -1 ) // this is dum 
-		{
-			// draw the line
-			ofLine(lastPosition, ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z));
-		}
+		//ofSetColor(255, 255, 255);
+		//ofSetLineWidth(3.0); // fat lines
+		////int startJoint = joint.getStartJoint();
+		////// do we have a start joint?
+		//if ( lastPosition.z != -1 ) // this is dum 
+		//{
+		//	// draw the line
+		//	ofLine(lastPosition, ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z));
+		//}
+
+		////ofSetColor(255, 0, 0);
+		////// Draw joint
+		////ofCircle( bone.getScreenPosition(), 10 );
 
 		//ofSetColor(255, 0, 0);
-		//// Draw joint
-		//ofCircle( bone.getScreenPosition(), 10 );
+		//ofCircle(ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z), 10);
 
-		ofSetColor(255, 0, 0);
-		ofCircle(ofVec3f(joint.Position.X, joint.Position.Y, joint.Position.Z), 10);
-
-		lastPosition.set(joint.Position.X, joint.Position.Y, joint.Position.Z);
+		//lastPosition.set(joint.Position.X, joint.Position.Y, joint.Position.Z);
 	}
 
 	ofSetColor(255, 255, 255);
@@ -466,9 +470,10 @@ bool ofxKinectCommonBridge::initBodyIndexStream()
 	KCBGetBodyIndexFrameDescription(hKinect, &bodyIndexFrameDescription);
 
 	bodyIndexPixels.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
+	bodyIndexPixelsBack.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
 
 	pBodyIndexFrame = new KCBBodyIndexFrame();
-	pBodyIndexFrame->Buffer = bodyIndexPixels.getPixels();
+	pBodyIndexFrame->Buffer = bodyIndexPixelsBack.getPixels();
 	pBodyIndexFrame->Size = bodyIndexFrameDescription.lengthInPixels;
 
 	bodyIndexTex.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, GL_LUMINANCE);
@@ -573,7 +578,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 				// clear everything out
 				for (int i = 0; i < 6; i++)
 				{
-					skeletonBackBuffer[i].clear();
+					//skeletonBackBuffer[i].clear();
 				}
 
 				// buffer for later
@@ -600,13 +605,14 @@ void ofxKinectCommonBridge::threadedFunction(){
 						{
 							for (int j = 0; j < _countof(joints); ++j)
 							{
-								Kv2JointBackBuffer bb;
+
+								/*Kv2JointBackBuffer bb;
 								bb.kcbJoint = joints[j];
 								bb.kcbOrientation = jointOrients[j];
 								bb.type = joints[j].JointType;
 								bb.trackingState = joints[j].TrackingState;
 
-								skeletonBackBuffer[i].push_back(bb);
+								skeletonBackBuffer[i].push_back(bb);*/
 							}
 						}
 					}
