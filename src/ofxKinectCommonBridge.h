@@ -57,7 +57,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	// new API
 	bool initSensor( int id = 0 );
 	bool initDepthStream( bool mapDepthToColor = false );
-	bool initColorStream( bool mapColorToDepth = false );
+	bool initColorStream(bool mapColorToDepth = false, ColorImageFormat format = ColorImageFormat_Rgba);
 	bool initIRStream( int width, int height );
 	bool initSkeletonStream( bool seated );
 	bool start();

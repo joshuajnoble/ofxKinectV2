@@ -143,7 +143,8 @@ void ofxKinectCommonBridge::update()
 					// programmable renderer likes this
 					// TODO
 					// swizzle this to rgb & a -> GL_ONE
-					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
+					//videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
+					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RG16);
 				} else {
 					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
 				}
@@ -441,28 +442,50 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 	return bInited;
 }
 
-bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth )
+bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth, ColorImageFormat format)
 {
 
 	KCBGetColorFrameDescription(hKinect, ColorImageFormat_Rgba, &colorFrameDescription);
 
-	videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
-	videoPixelsBack.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
 	if(bUseTexture){
-		videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
+		if (format != ColorImageFormat_Rgba)
+		{
+			if (bProgrammableRenderer)
+			{
+				videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_RG16);
+			}
+			else
+			{
+				ofLogError("ofxKinectCommonBridge::initColorStream", "yuy2 needs programmable renderer");
+			}
+		}
+		else
+		{ 
+			videoTex.allocate(colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
+		}
 	}
 
+	if (format != ColorImageFormat_Rgba)
+	{
+		videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, 2);
+		videoPixelsBack.allocate(colorFrameDescription.width, colorFrameDescription.height, 2);
+	}
+	else
+	{
+		videoPixels.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
+		videoPixelsBack.allocate(colorFrameDescription.width, colorFrameDescription.height, OF_IMAGE_COLOR_ALPHA);
+	}
 
 	pColorFrame = new KCBColorFrame();
 	pColorFrame->Buffer = videoPixels.getPixels();
 	pColorFrame->Size = colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel;
-	pColorFrame->Format = ColorImageFormat_Rgba;
+	pColorFrame->Format = format;
 
 
 	pColorFrameBack = new KCBColorFrame();
 	pColorFrameBack->Buffer = videoPixelsBack.getPixels();
 	pColorFrameBack->Size = colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel;
-	pColorFrameBack->Format = ColorImageFormat_Rgba;
+	pColorFrameBack->Format = format;
 
 	//HRESULT hr = KCBCreateColorFrame(ColorImageFormat_Rgba, colorFrameDescription, &pColorFrame);
 	return true;

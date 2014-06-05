@@ -20,6 +20,6 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		ofxKinectCommonBridge kinect;
-		ofShader k4wShader;
+		ofShader yuvRGBShader;
 		ofPlanePrimitive plane;
 };

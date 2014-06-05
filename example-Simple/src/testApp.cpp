@@ -3,6 +3,7 @@
 //--------------------------------------------------------------
 void testApp::setup(){
 
+	
 	kinect.initSensor();
 	kinect.initColorStream(true);
 	kinect.initDepthStream(true);
@@ -23,7 +24,9 @@ void testApp::update(){
 void testApp::draw()
 {
 	ofBackground(0, 255);
+	
 	kinect.draw(0,0);
+
 	kinect.drawDepth(0, 0);
 	kinect.drawBodyIndex(500, 0);
 	//kinect.drawAllSkeletons(ofVec2f(640,480));
