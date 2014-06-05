@@ -450,12 +450,6 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 		}
 	}
 
-	//HRESULT hr = KCBCreateInfraredFrame(irFrameDescription, &pInfraredFrame);
-	//if (hr >= 0){
-	//	bInited = true;
-	//	return true;
-	//}
-
 	bInited = true;
 	ofLogError("ofxKinectCommonBridge::initSkeletonStream") << "cannot initialize stream";
 	return true;
