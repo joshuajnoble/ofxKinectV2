@@ -197,15 +197,15 @@ void ofxKinectCommonBridge::update()
 	if (bNeedsUpdateBodyIndex)
 	{
 		
-		swap(bodyIndexPixelsBack, bodyIndexPixels);
+		swap(pBodyIndexFrame, pBodyIndexFrame);
 
 		if (bProgrammableRenderer)
 		{
-			bodyIndexTex.loadData(bodyIndexPixels, GL_R8);
+			bodyIndexTex.loadData(pBodyIndexFrame->Buffer, bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, GL_R8);
 		}
 		else
 		{
-			bodyIndexTex.loadData(bodyIndexPixels, GL_LUMINANCE);
+			bodyIndexTex.loadData(pBodyIndexFrame->Buffer, bodyIndexFrameDescription.width, bodyIndexFrameDescription.height, GL_LUMINANCE);
 		}
 
 		bNeedsUpdateBodyIndex = false;
@@ -515,8 +515,12 @@ bool ofxKinectCommonBridge::initBodyIndexStream()
 	bodyIndexPixels.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
 	bodyIndexPixelsBack.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, OF_IMAGE_GRAYSCALE);
 
+	pBodyIndexFrameBack = new KCBBodyIndexFrame();
+	pBodyIndexFrameBack->Buffer = bodyIndexPixelsBack.getPixels();
+	pBodyIndexFrameBack->Size = bodyIndexFrameDescription.lengthInPixels;
+
 	pBodyIndexFrame = new KCBBodyIndexFrame();
-	pBodyIndexFrame->Buffer = bodyIndexPixelsBack.getPixels();
+	pBodyIndexFrame->Buffer = bodyIndexPixels.getPixels();
 	pBodyIndexFrame->Size = bodyIndexFrameDescription.lengthInPixels;
 
 	bodyIndexTex.allocate(bodyIndexFrameDescription.width, bodyIndexFrameDescription.width, GL_LUMINANCE);
@@ -668,7 +672,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 		if (bUsingBodyIndex)
 		{
 			
-			if (KCBIsFrameReady(hKinect, FrameSourceTypes_BodyIndex) && (SUCCEEDED(KCBGetBodyIndexFrame(hKinect, pBodyIndexFrame)) == 0))
+			if (SUCCEEDED(KCBGetBodyIndexFrame(hKinect, pBodyIndexFrame)))
 			{
 				bNeedsUpdateBodyIndex = true;
 			}

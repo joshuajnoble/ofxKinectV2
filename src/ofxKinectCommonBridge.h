@@ -195,7 +195,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	JointOrientation jointOrients[JointType_Count];
 	Joint joints[JointType_Count];
 
-	KCBBodyIndexFrame* pBodyIndexFrame;
+	KCBBodyIndexFrame *pBodyIndexFrame, *pBodyIndexFrameBack;
 
 	KCBFrameDescription colorFrameDescription;
 	KCBFrameDescription depthFrameDescription;
