@@ -14,41 +14,36 @@ typedef map<JointType, Kv2Joint> Skeleton;
 
 class Kv2Joint
 {
+  public:
 
-public:
+	void setJoint(_Joint kcbPosiiton, _JointOrientation kcbOrientation, JointType kcbType)
+	{
+		JointOrientation.set(kcbOrientation.Orientation.x, kcbOrientation.Orientation.y, kcbOrientation.Orientation.z, kcbOrientation.Orientation.w);
+		jointPosition.set(kcbPosition.Position.X, kcbPosition.Position.Y, kcbPosition.Position.Z);
+		type = kcbType;
+	}
 
 	ofVec3f getPosition() {
-		return ofJointPosition;
+		return jointPosition;
 	}
 
-	void setJoint(_Joint joint, _JointOrientation orientation)
-	{
-		ofJointRotation.set(orientation.Orientation.x, orientation.Orientation.y, orientation.Orientation.z, orientation.Orientation.w);
-		ofJointPosition.set(joint.Position.X, joint.Position.Y, joint.Position.Z);
+	ofQuaternion getOrientation() {
+		return jointOrientation;
 	}
 
-	_Joint getJoint() {
-		return kcbJoint;
+	TrackingState getTrackingState(){
+		return trackingState;
 	}
 
-	_JointOrientation getOrientation() {
-		return kcbOrientation;
-	}
-
-private:
-	ofVec3f ofJointPosition;
-	ofQuaternion ofJointRotation;
-	_JointOrientation kcbOrientation;
-	_Joint kcbJoint;
-};
-
-struct Kv2JointBackBuffer
-{
-	_JointOrientation kcbOrientation;
-	_Joint kcbJoint;
+  protected:
+	ofVec3f jointPosition;
+	ofQuaternion jointOrientation;
+//	_JointOrientation kcbOrientation;
+//	_Joint kcbJoint;
 	JointType type;
 	TrackingState trackingState;
 };
+
 
 typedef vector<Kv2JointBackBuffer> skeletonBackBuffer;
 
@@ -56,6 +51,7 @@ class ofxKinectCommonBridge : protected ofThread {
   public:
 	
 	ofxKinectCommonBridge();
+
 
 	// new API
 	bool initSensor( int id = 0 );
@@ -125,7 +121,7 @@ class ofxKinectCommonBridge : protected ofThread {
 		return videoTex;
 	}
 
-  private:
+  protected:
 
     KCBHANDLE hKinect;
 	//KINECT_IMAGE_FRAME_FORMAT depthFormat;

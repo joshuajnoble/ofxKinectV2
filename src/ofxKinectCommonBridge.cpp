@@ -486,11 +486,7 @@ bool ofxKinectCommonBridge::initSkeletonStream( bool seated )
 		return false;
 	}
 
-	for (int i = 0; i < 6; i++)
-	{
-		Skeleton sk;
-		skeletons.push_back(sk);
-	}
+	skeletons.resize(6);
 
 	//HRESULT hr = KCBCreateBodyFrame(&pBodyFrame);
 	//if (hr >= 0){
