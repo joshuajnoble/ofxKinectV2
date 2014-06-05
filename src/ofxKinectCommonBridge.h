@@ -12,42 +12,47 @@
 class Kv2Joint
 {
   public:
-
-	void setJoint(_Joint kcbPosition, _JointOrientation kcbOrientation, JointType kcbType)
+	Kv2Joint(){}
+	Kv2Joint(const _Joint& kcbPosition, const _JointOrientation& kcbOrientation)
 	{
 		jointOrientation.set(kcbOrientation.Orientation.x, kcbOrientation.Orientation.y, kcbOrientation.Orientation.z, kcbOrientation.Orientation.w);
 		jointPosition.set(kcbPosition.Position.X, kcbPosition.Position.Y, kcbPosition.Position.Z);
-		type = kcbType;
+		type = kcbPosition.JointType;
 	}
 
-	ofVec3f getPosition() {
+	ofVec3f getPosition()
+	{
 		return jointPosition;
 	}
 
-	ofQuaternion getOrientation() {
+	ofQuaternion getOrientation()
+	{
 		return jointOrientation;
 	}
 
-	TrackingState getTrackingState(){
+	TrackingState getTrackingState()
+	{
 		return trackingState;
 	}
 
   protected:
 	ofVec3f jointPosition;
 	ofQuaternion jointOrientation;
-//	_JointOrientation kcbOrientation;
-//	_Joint kcbJoint;
 	JointType type;
 	TrackingState trackingState;
 };
 
-typedef map<JointType, Kv2Joint> Skeleton;
+class Kv2Skeleton
+{
+  public:
+	bool tracked;
+	map<JointType, Kv2Joint> joints;
+};
 
 class ofxKinectCommonBridge : protected ofThread {
   public:
 	
 	ofxKinectCommonBridge();
-
 
 	// new API
 	bool initSensor( int id = 0 );
@@ -112,7 +117,6 @@ class ofxKinectCommonBridge : protected ofThread {
 		return depthTex;
 	}
 
-
 	ofTexture &getColorTexture() {
 		return videoTex;
 	}
@@ -126,7 +130,8 @@ class ofxKinectCommonBridge : protected ofThread {
 
   	bool bInited;
 	bool bStarted;
-	vector<Skeleton> skeletons;
+	vector<Kv2Skeleton> skeletons;
+	vector<Kv2Skeleton> backSkeletons;
 
 	//quantize depth buffer to 8 bit range
 	vector<unsigned char> depthLookupTable;
@@ -193,6 +198,10 @@ class ofxKinectCommonBridge : protected ofThread {
 	//KCBBodyFrame* pBodyFrame; // not using this yet
 	//IBodyFrame *pbodyFrame;
 	//IBody *pBodies[6];
+
+	JointOrientation jointOrients[JointType_Count];
+	Joint joints[JointType_Count];
+
 	KCBBodyIndexFrame* pBodyIndexFrame;
 
 	KCBFrameDescription colorFrameDescription;

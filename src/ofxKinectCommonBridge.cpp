@@ -302,7 +302,7 @@ void ofxKinectCommonBridge::drawSkeleton( int index )
 	ofVec3f lastPosition(-1,-1,-1);
 
 	// Iterate through joints
-	for ( Skeleton::iterator it = skeletons.at(index).begin(); it != skeletons.at(index).end(); ++it ) 
+	for (map<JointType, Kv2Joint>::iterator it = skeletons[index].joints.begin(); it != skeletons[index].joints.end(); ++it)
 	{
 
 		//// Get position and rotation
@@ -571,19 +571,21 @@ void ofxKinectCommonBridge::threadedFunction(){
 			if (SUCCEEDED(KCBGetIBodyFrame(hKinect, &pBodyFrame)))
 			{
 				/*pBodyFrame->Bodies*/
-				HRESULT hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
+				HRESULT hr = pBodyFrame->GetAndRefreshBodyData(BODY_COUNT, ppBodies);
 				bNeedsUpdateSkeleton = true;
 
 
 				// clear everything out
-				for (int i = 0; i < 6; i++)
-				{
+				//for (int i = 0; i < 6; i++)
+				//{
 					//skeletonBackBuffer[i].clear();
-				}
+				//}
 
 				// buffer for later
-				for (int i = 0; i < _countof(ppBodies); ++i)
+				for (int i = 0; i < BODY_COUNT; ++i)
 				{
+					backSkeletons[i].joints.clear();
+
 					IBody *pBody = ppBodies[i];
 					BOOLEAN isTracked = false;
 					
@@ -596,25 +598,38 @@ void ofxKinectCommonBridge::threadedFunction(){
 
 					if (isTracked)
 					{
-						Joint joints[JointType_Count];
-						HRESULT hr = ppBodies[i]->GetJoints(_countof(joints), joints);
-
-						JointOrientation jointOrients[JointType_Count];
-						hr = ppBodies[i]->GetJointOrientations(_countof(jointOrients), jointOrients);
-						if (SUCCEEDED(hr))
+//						Joint joints[JointType_Count];
+						HRESULT hrJoints = ppBodies[i]->GetJoints(JointType_Count, joints);
+//						JointOrientation jointOrients[JointType_Count];
+						HRESULT hrOrient = ppBodies[i]->GetJointOrientations(JointType_Count, jointOrients);
+						if (FAILED(hrJoints))
 						{
-							for (int j = 0; j < _countof(joints); ++j)
+							ofLogError("ofxKinectCommonBridge::threadedFunction") << "Failed to get joints";
+						}
+
+						if (FAILED(hrOrient))
+						{
+							ofLogError("ofxKinectCommonBridge::threadedFunction") << "Failed to get orientations";
+						}
+
+						if (SUCCEEDED(hrJoints) && SUCCEEDED(hrOrient))
+						{
+							for (int j = 0; j < JointType_Count; ++j)
 							{
+								backSkeletons[i].joints[joints[j].JointType] = Kv2Joint(joints[j], jointOrients[j]);
 
 								/*Kv2JointBackBuffer bb;
 								bb.kcbJoint = joints[j];
 								bb.kcbOrientation = jointOrients[j];
 								bb.type = joints[j].JointType;
 								bb.trackingState = joints[j].TrackingState;
-
 								skeletonBackBuffer[i].push_back(bb);*/
 							}
 						}
+						backSkeletons[i].tracked = true;
+					}
+					else {
+						backSkeletons[i].tracked = false;
 					}
 					pBody->Release();//ppBodies[i]->Release();
 				}
