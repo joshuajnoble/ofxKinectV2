@@ -8,7 +8,7 @@ This is an openFrameworks addon for working with the Microsoft SDK for the Kinec
 * [Visual Studio 2013](http://www.visualstudio.com/)
 * [A Kinect V2](http://www.microsoft.com/en-us/kinectforwindows/Purchase/developer-sku.aspx)
 * The Kinect V2 SDK (will be released to the public in July)
-
+* [openFrameworks with all the poco libs compiled for 2013](https://github.com/liquidzym/openFrameworks/tree/VS2013)
 
 Just to answer a few of the initial questions:
 
