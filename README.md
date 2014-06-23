@@ -5,7 +5,7 @@ This is an openFrameworks addon for working with the Microsoft SDK for the Kinec
 
 * A computer with a USB 3 port
 * Windows 8.1 (bootcamp ok but VM, not)
-* [Visual Studio 2013](http://www.visualstudio.com/)
+* [Visual Studio 2012 or 2013](http://www.visualstudio.com/)
 * [A Kinect V2](http://www.microsoft.com/en-us/kinectforwindows/Purchase/developer-sku.aspx)
 * The Kinect V2 SDK (will be released to the public in July)
 * [openFrameworks with all the poco libs compiled for 2013](https://github.com/liquidzym/openFrameworks/tree/VS2013)
