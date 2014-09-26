@@ -122,6 +122,34 @@ class ofxKinectCommonBridge : protected ofThread {
 		return videoTex;
 	}
 
+	vector<ofPoint> allDepthFramePoints;
+	void cacheAllDepthFramePoints();
+	
+	//get a coordinate in the color image back from a point in the depthImage
+	ofVec2f mapDepthToColor(ofPoint depthPoint);
+	ofVec2f mapDepthToColor(ofPoint depthPoint, ofShortPixels& depthImage);
+
+	//get a vector of color frame coordinates back from a set of depthFrame coordinates
+	void mapDepthToColor(vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(const vector<ofPoint>& depthPoints, vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
+
+	//these mappings copy color pixels into the destination provided
+	//if dstColorPixels isn't allocated it will be forced to the same size as depthImage
+	void mapDepthToColor(ofPixels& dstColorPixels);
+	void mapDepthToColor(const ofShortPixels& depthImage, ofPixels& dstColorPixels);
+	void mapDepthToColor(const vector<ofPoint>& depthPoint, ofPixels& dstColorPixels);
+	void mapDepthToColor(const vector<ofPoint>& depthPoint, const ofShortPixels& depthImage, ofPixels& dstColorPixels);
+
+	//given 2d depthPoint(s) in the depth image space, what are the 3d world positions?
+	ofVec3f mapDepthToSkeleton(ofPoint depthPoint);
+	ofVec3f mapDepthToSkeleton(ofPoint depthPoint, const ofShortPixels& depthImage);
+	vector<ofVec3f> mapDepthToSkeleton();
+	vector<ofVec3f> mapDepthToSkeleton(const ofShortPixels& depthImage);
+	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints);
+	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage);
+
   protected:
 
     KCBHANDLE hKinect;
