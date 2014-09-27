@@ -149,6 +149,8 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapDepthToSkeleton(const ofShortPixels& depthImage);
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints);
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage);
+	
+	void mapDepthFrameToColorFrame(ofPixels& dstColorPixels);
 
   protected:
 
