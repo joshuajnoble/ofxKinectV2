@@ -773,6 +773,49 @@ void ofxKinectCommonBridge::mapDepthToColor(const vector<ofPoint>& depthPoints, 
 }
 
 
+// this is much faster if you have a complete frame and aren't mapping only one part of the frame. props to Kj1 for the tip.
+void ofxKinectCommonBridge::mapDepthFrameToColorFrame(ofPixels& dstColorPixels) {
+	int depthArraySize = depthFrameDescription.width * depthFrameDescription.height;
+	vector<UINT16> depths; //input
+	depths.resize(depthArraySize);
+	const ofShortPixelsRef depthImage = getRawDepthPixelsRef();
+	for(int y = 0; y < depthFrameDescription.height; y++){
+	    for(int x = 0; x < depthFrameDescription.width; x++) {
+	        int i = y*depthFrameDescription.width+x;
+	        depths[i] = (UINT16)depthImage.getPixels()[i];
+	    }
+	}
+	
+	//output
+	vector<ColorSpacePoint> colorPoints;
+	colorPoints.resize(depthArraySize);
+	
+	HRESULT mapResult;
+	mapResult = KCBMapDepthFrameToColorSpace(
+	    hKinect,
+	    depthArraySize, &depths[0],
+	    depthArraySize, &colorPoints[0]);
+	
+	
+	if(!dstColorPixels.isAllocated() || 
+	    dstColorPixels.getWidth() != depthFrameDescription.width || dstColorPixels.getWidth() != depthFrameDescription.height)
+	{
+	    dstColorPixels.allocate(depthFrameDescription.width,depthFrameDescription.height, OF_IMAGE_COLOR);
+	}
+	
+	memset(dstColorPixels.getPixels(), 0, dstColorPixels.getWidth()*dstColorPixels.getHeight()*dstColorPixels.getBytesPerPixel());
+	
+	for(int y = 0; y < depthFrameDescription.height; y++){
+	    for(int x = 0; x < depthFrameDescription.width; x++) {      
+	        int depthFrameIndex = y * depthFrameDescription.width + x;
+	        ColorSpacePoint& p = colorPoints[depthFrameIndex]; 
+	        if(p.X >= 0 && p.X < colorFrameDescription.width && p.Y >= 0 && p.Y < colorFrameDescription.height)
+	        {
+	            dstColorPixels.setColor(x,y, videoPixels.getColor(p.X,p.Y));
+	        }
+	    }
+	}
+}
 
 //TODO
 //----------------------------------------------------------
