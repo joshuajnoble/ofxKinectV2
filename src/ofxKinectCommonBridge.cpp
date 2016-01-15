@@ -22,7 +22,8 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	bVideoIsInfrared = false;
 	bInited = false;
 	bStarted = false;
-
+	bNearWhite = true;
+	
 	mappingColorToDepth = false;
 	mappingDepthToColor = false;
 
@@ -73,6 +74,11 @@ void ofxKinectCommonBridge::setDepthClipping(float nearClip, float farClip){
 	nearClipping = nearClip;
 	farClipping = farClip;
 	updateDepthLookupTable();
+}
+
+//---------------------------------------------------------------------------
+void ofxKinectCommonBridge::setNearWhite(bool nearWhite) {
+	bNearWhite = nearWhite;
 }
 
 //---------------------------------------------------------------------------
