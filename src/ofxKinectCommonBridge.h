@@ -72,6 +72,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	bool initBodyIndexStream();
 
 	void setDepthClipping(float nearClip=500, float farClip=4000);
+	void setNearWhite(bool nearWhite);
 	
 	/// updates the pixel buffers and textures
 	///
